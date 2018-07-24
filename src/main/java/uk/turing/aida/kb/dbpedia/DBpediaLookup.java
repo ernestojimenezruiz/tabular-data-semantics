@@ -4,14 +4,16 @@
  * 
  *
  *******************************************************************************/
-package uk.turing.aida.dbpedia;
+package uk.turing.aida.kb.dbpedia;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -88,10 +90,59 @@ public class DBpediaLookup {
 		
 		for (JsonNode result : jsonToNode(getRequest(urlToGet)).get("results")){
 			
+			//System.out.println(result.toString());
+			
 			entities.add(result.get("uri").asText());
 		}
 		
 		return entities;
+		
+	}
+
+	
+	
+	public Map<String, Set<String>> getDBpediaEntitiesAndClasses(String query) throws JsonProcessingException, IOException{
+		return getDBpediaEntitiesAndClasses(query, hits);
+	}
+
+	
+	
+	/**
+	 * Return a Map with "key"=URIs containing the DBPedia entities related to the query string, and "values"=sets of (ontology) class uris
+	 * @param query
+	 * @return
+	 * @throws IOException 
+	 * @throws JsonProcessingException 
+	 */
+	public Map<String, Set<String>> getDBpediaEntitiesAndClasses(String query, int max_hits) throws JsonProcessingException, IOException{
+		
+		
+		Map<String, Set<String>> entities2classes = new HashMap<String, Set<String>>();
+		
+		String urlToGet = REST_URL	+ MaxHits + "="+ max_hits + "&" + QueryString + "=" + query;
+		
+		JsonNode results = jsonToNode(getRequest(urlToGet));
+		
+		String uri_entity;
+		String cls_uri;
+		
+		for (JsonNode result : results.get("results")){
+			
+			uri_entity = result.get("uri").asText();
+			
+			entities2classes.put(uri_entity, new HashSet<String>());
+			
+			for (JsonNode cls : result.get("classes")){
+			
+				cls_uri=cls.get("uri").asText();
+				
+				if (!cls_uri.equals("http://www.w3.org/2002/07/owl#Thing"))				
+					entities2classes.get(uri_entity).add(cls_uri);
+			}
+			
+		}
+		
+		return entities2classes;
 		
 	}
 	
@@ -153,6 +204,10 @@ public class DBpediaLookup {
 		
 		try {
 			System.out.println(lookup.getDBpediaEntities("berlin").toString());
+			//System.out.println(lookup.getDBpediaEntitiesAndClasses("berlin").toString());
+			for (String key : lookup.getDBpediaEntitiesAndClasses("berlin").keySet()){
+				System.out.println(key + "  "  + lookup.getDBpediaEntitiesAndClasses("berlin").get(key).toString());
+			}
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
