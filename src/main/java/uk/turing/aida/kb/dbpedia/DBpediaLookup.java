@@ -68,7 +68,15 @@ public class DBpediaLookup {
 	}
 	
 	public Set<String> getDBpediaEntities(String query) throws JsonProcessingException, IOException{
-		return getDBpediaEntities(query, hits);
+		return getDBpediaEntities(query,"", hits);
+	}
+	
+	public Set<String> getDBpediaEntities(String query, int max_hits) throws JsonProcessingException, IOException{
+		return getDBpediaEntities(query,"", max_hits);
+	}
+	
+	public Set<String> getDBpediaEntities(String query, String type) throws JsonProcessingException, IOException{
+		return getDBpediaEntities(query,type, hits);
 	}
 
 	
@@ -79,12 +87,12 @@ public class DBpediaLookup {
 	 * @throws IOException 
 	 * @throws JsonProcessingException 
 	 */
-	public Set<String> getDBpediaEntities(String query, int max_hits) throws JsonProcessingException, IOException{
+	public Set<String> getDBpediaEntities(String query, String cls_type, int max_hits) throws JsonProcessingException, IOException{
 		
 		
 		Set<String> entities = new HashSet<String>();
 		
-		String urlToGet = REST_URL	+ MaxHits + "="+ max_hits + "&" + QueryString + "=" + query;
+		String urlToGet = REST_URL + QueryClass + "=" + cls_type + "&"	+ MaxHits + "=" + max_hits + "&" + QueryString + "=" + query;
 		
 		
 		
@@ -100,9 +108,17 @@ public class DBpediaLookup {
 	}
 
 	
-	
+		
 	public Map<String, Set<String>> getDBpediaEntitiesAndClasses(String query) throws JsonProcessingException, IOException{
-		return getDBpediaEntitiesAndClasses(query, hits);
+		return getDBpediaEntitiesAndClasses(query,"", hits);
+	}
+	
+	public Map<String, Set<String>> getDBpediaEntitiesAndClasses(String query, int max_hits) throws JsonProcessingException, IOException{
+		return getDBpediaEntitiesAndClasses(query,"", max_hits);
+	}
+	
+	public Map<String, Set<String>> getDBpediaEntitiesAndClasses(String query, String type) throws JsonProcessingException, IOException{
+		return getDBpediaEntitiesAndClasses(query,type, hits);
 	}
 
 	
@@ -114,12 +130,12 @@ public class DBpediaLookup {
 	 * @throws IOException 
 	 * @throws JsonProcessingException 
 	 */
-	public Map<String, Set<String>> getDBpediaEntitiesAndClasses(String query, int max_hits) throws JsonProcessingException, IOException{
+	public Map<String, Set<String>> getDBpediaEntitiesAndClasses(String query, String cls_type, int max_hits) throws JsonProcessingException, IOException{
 		
 		
 		Map<String, Set<String>> entities2classes = new HashMap<String, Set<String>>();
 		
-		String urlToGet = REST_URL	+ MaxHits + "="+ max_hits + "&" + QueryString + "=" + query;
+		String urlToGet = REST_URL + QueryClass + "=" + cls_type + "&" + MaxHits + "="+ max_hits + "&" + QueryString + "=" + query;
 		
 		JsonNode results = jsonToNode(getRequest(urlToGet));
 		
@@ -202,11 +218,22 @@ public class DBpediaLookup {
 	public static void main(String[] args){
 		DBpediaLookup lookup = new DBpediaLookup();
 		
+		String word;
+		word="virgin";
+		//word="berlin";
+		word="west%20midlands";
+		
+		String type="";
+		//type= "AdministrativeRegion";
+		//type = "http://dbpedia.org/ontology/AdministrativeRegion";
+		//type = "http://dbpedia.org/ontology/PopulatedPlace";
+		
 		try {
-			System.out.println(lookup.getDBpediaEntities("berlin").toString());
-			//System.out.println(lookup.getDBpediaEntitiesAndClasses("berlin").toString());
-			for (String key : lookup.getDBpediaEntitiesAndClasses("berlin").keySet()){
-				System.out.println(key + "  "  + lookup.getDBpediaEntitiesAndClasses("berlin").get(key).toString());
+			System.out.println(lookup.getDBpediaEntities(word, type).toString());
+			//System.out.println(lookup.getDBpediaEntitiesAndClasses(word).toString());
+			Map<String, Set<String>> map = lookup.getDBpediaEntitiesAndClasses(word, type);
+			for (String key : map.keySet()){
+				System.out.println(key + "  "  + map.get(key).toString());
 			}
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block

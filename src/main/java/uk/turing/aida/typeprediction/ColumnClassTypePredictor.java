@@ -14,6 +14,15 @@ package uk.turing.aida.typeprediction;
  *
  */
 public class ColumnClassTypePredictor {
+	
+	
+	
+	
+	public ColumnClassTypePredictor(){
+		
+	}
+	
+	
 
 	//It will get as input a Table or Column
 	//To implement:

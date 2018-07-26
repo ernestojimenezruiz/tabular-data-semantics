@@ -90,6 +90,9 @@ public class DBpediaEndpoint {
 		
 		String uri_subject = "http://dbpedia.org/resource/Berlin";
 		
+		//String uri_subject = "http://dbpedia.org/resource/Plusnet";
+		//String uri_subject = "http://dbpedia.org/resource/Virgin";
+		
 		DBpediaEndpoint dbe = new DBpediaEndpoint();
 	
 		for (Statement st : dbe.getTriplesForSubject(uri_subject)){
