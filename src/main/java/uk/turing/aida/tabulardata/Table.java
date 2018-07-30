@@ -7,6 +7,8 @@ package uk.turing.aida.tabulardata;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 /**
  * 
  * This class will manage the tabular data structure as a list of String vectors.
@@ -23,15 +25,15 @@ public class Table {
 	//Optional
 	String[] column_names;
 	
-	List<String[]> table_data;
+	List<String[]> table_data=new ArrayList<String[]>();
 	
 	public Table(){
-		setEmptyTable();
+		//setEmptyTable();
 	}
 	
 	
 	public void setEmptyTable(){
-		table_data = new ArrayList<String[]>();
+		table_data.clear();
 	}
 	
 	
@@ -43,6 +45,10 @@ public class Table {
 		return table_name ;
 	}
 	
+	
+	public boolean hasColumnNames(){
+		return ArrayUtils.isNotEmpty(column_names);
+	}
 	
 	public void addColumnNames(String[] names){
 		column_names=names.clone();
@@ -71,6 +77,10 @@ public class Table {
 		return table_data;
 	}
 	
+	
+	public int getSize(){
+		return table_data.size();
+	}
 	
 	public String[] getRow(int rid){
 		return table_data.get(rid);
