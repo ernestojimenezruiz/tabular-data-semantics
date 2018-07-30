@@ -52,8 +52,8 @@ public class ExtendedColumnTypeDataset {
 			types.add(Utils.removeQuotes(cvs_reader.getTable().getRow(i)[2]));
 		}		
 		
-		//System.out.println(Utils.removeQuotes(cvs_reader.getTable().getRow(0)[0]).replaceAll(".tar.gz", ""));
-		//System.out.println(Utils.removeQuotes(cvs_reader.getTable().getRow(0)[2]).replaceAll(".tar.gz", ""));
+		System.out.println(Utils.removeQuotes(cvs_reader.getTable().getRow(0)[0]).replaceAll(".tar.gz", ""));
+		System.out.println(Utils.removeQuotes(cvs_reader.getTable().getRow(0)[2]).replaceAll(".tar.gz", ""));
 		
 	}
 	

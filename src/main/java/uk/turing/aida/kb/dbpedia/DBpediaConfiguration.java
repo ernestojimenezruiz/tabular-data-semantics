@@ -10,15 +10,6 @@ package uk.turing.aida.kb.dbpedia;
  * Created on 30 Jul 2018
  *
  */
-public class DBpediaOntology {
+public class DBpediaConfiguration {
 
-	//Class dealing with the loading of the ontology and basic access (e.g. range of property x)
-	
-	
-	
-	
-	
-	
-	
-	
 }
