@@ -7,9 +7,10 @@ package uk.turing.aida.tabulardata.reader;
 import java.io.FileNotFoundException;
 
 import uk.turing.aida.tabulardata.Table;
+import uk.turing.aida.tabulardata.utils.ReadFile;
 
 /**
- *
+ * Basic reader. One should have a more robust implementation. Take into account what is inside ""
  * @author ernesto
  * Created on 24 Jul 2018
  *
