@@ -4,7 +4,6 @@
  *******************************************************************************/
 package uk.turing.aida.tabulardata.t2d;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +49,6 @@ public class ExtendedColumnTypeDataset {
 	
 	//1. Read GS_types file, for each file name in col1 then search file in "property folder"
 	private void readTableFilesWithType() throws IOException{
-		
 		
 		//Format 
 		//"68779923_2_1000046510804975562.tar.gz","Country","http://dbpedia.org/ontology/Country"
@@ -179,18 +177,9 @@ public class ExtendedColumnTypeDataset {
 			
 			}
 			
-			//read csv file
-			
-			//get column information
-			//"http://dbpedia.org/ontology/birthDate","geb.","False","2"
-			//"http://dbpedia.org/ontology/deathDate","gest.","False","3"
-			//"http://www.w3.org/2000/01/rdf-schema#label","name","True","0"
-			
-			
 			local_writer.closeBuffer();
 			
 		}
-		
 		
 		global_writer.closeBuffer();
 		global_writer_only_classes.closeBuffer();
