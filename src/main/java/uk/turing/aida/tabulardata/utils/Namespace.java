@@ -53,6 +53,10 @@ public class Namespace {
  
 	
 	
+	public static final String RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label";
+	
+	
+	
 	//IRIS constants/namespaces
 	public static final String IRIS_EQUAL = "EQUAL";
 	public static final String IRIS_NOT_EQUAL = "NOT_EQUAL";

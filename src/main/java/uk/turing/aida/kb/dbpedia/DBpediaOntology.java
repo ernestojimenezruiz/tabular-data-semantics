@@ -45,15 +45,15 @@ public class DBpediaOntology {
 	
 	DBpediaConfiguration dbp_config = new DBpediaConfiguration();
 	
-	public DBpediaOntology() throws IOException, OWLOntologyCreationException{
+	public DBpediaOntology(boolean load_annotations) throws IOException, OWLOntologyCreationException{
 		dbp_config.loadConfiguration();
-		loadOWLOntology();
+		loadOWLOntology(load_annotations);
 	}
 	
 	
 
 	
-	protected void loadOWLOntology() throws OWLOntologyCreationException{		
+	protected void loadOWLOntology(boolean load_annotations) throws OWLOntologyCreationException{		
 		
 		
 		manager_onto = OWLManager.createConcurrentOWLOntologyManager();
@@ -67,6 +67,8 @@ public class DBpediaOntology {
 			manager_onto = OWLManager.createOWLOntologyManager();
 	        OWLOntologyLoaderConfiguration loader_config = new OWLOntologyLoaderConfiguration();
 	        loader_config = loader_config.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
+	        //TODO we do not load annotattions
+	        loader_config = loader_config.setLoadAnnotationAxioms(load_annotations);
 	     	manager_onto.setOntologyLoaderConfiguration(loader_config);   
 	        
 	     	
@@ -95,7 +97,12 @@ public class DBpediaOntology {
 			return null;
 		}
 		else if (dbp_ontology.getEntitiesInSignature(entityIRI).size()>1){
-			System.err.println("More than one correspondence in ontology for: " + entityIRI);
+			
+			//for (OWLEntity ent : dbp_ontology.getEntitiesInSignature(entityIRI)){
+			//	System.out.println(ent.getEntityType() + " " + ent.isOWLClass() + " " + ent.isOWLDataProperty() + " " + ent.isOWLObjectProperty());
+			//}
+			
+			System.err.println("More than one correspondence in ontology for: " + entityIRI + ":  " + dbp_ontology.getEntitiesInSignature(entityIRI));
 			return null;
 		}
 		
@@ -131,6 +138,9 @@ public class DBpediaOntology {
 			
 		}
 		
+		if (types.isEmpty())
+			types.add(dataFactory.getOWLThing());
+		
 		return types;
 		
 	}
@@ -150,6 +160,9 @@ public class DBpediaOntology {
 			
 		}
 		
+		if (datatypes.isEmpty())
+			datatypes.add(dataFactory.getTopDatatype());
+		
 		return datatypes;
 		
 	}
@@ -159,8 +172,10 @@ public class DBpediaOntology {
 	
 	public static void main(String[] args){
 		try {
-			DBpediaOntology dbo = new DBpediaOntology();
-			dbo.loadOWLOntology();
+			DBpediaOntology dbo = new DBpediaOntology(true);
+			
+			System.out.println(dbo.dataFactory.getTopDatatype());
+			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

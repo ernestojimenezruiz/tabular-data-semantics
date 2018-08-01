@@ -17,6 +17,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import uk.turing.aida.kb.dbpedia.DBpediaOntology;
 import uk.turing.aida.tabulardata.reader.CVSReader;
+import uk.turing.aida.tabulardata.utils.Namespace;
 import uk.turing.aida.tabulardata.utils.Utils;
 import uk.turing.aida.tabulardata.utils.WriteFile;
 
@@ -35,7 +36,7 @@ public class ExtendedColumnTypeDataset {
 	T2DConfiguration config = new T2DConfiguration();
 	
 	List<String> files = new ArrayList<String>();
-	List<String> types = new ArrayList<String>();
+	List<String> type_tables = new ArrayList<String>();
 	
 	public ExtendedColumnTypeDataset() throws IOException, OWLOntologyCreationException{
 		
@@ -48,7 +49,7 @@ public class ExtendedColumnTypeDataset {
 	}
 	
 	//1. Read GS_types file, for each file name in col1 then search file in "property folder"
-	private void readTableFilesWithType() throws FileNotFoundException{
+	private void readTableFilesWithType() throws IOException{
 		
 		
 		//Format 
@@ -59,10 +60,11 @@ public class ExtendedColumnTypeDataset {
 		for (int i=0; i<cvs_reader.getTable().getSize(); i++){
 			
 			files.add(Utils.removeQuotes(cvs_reader.getTable().getRow(i)[0]).replaceAll(".tar.gz", ""));
-			types.add(Utils.removeQuotes(cvs_reader.getTable().getRow(i)[2]));
+			type_tables.add(Utils.removeQuotes(cvs_reader.getTable().getRow(i)[2]));
 		}		
 		
 		System.out.println(Utils.removeQuotes(cvs_reader.getTable().getRow(0)[0]).replaceAll(".tar.gz", ""));
+		//System.out.println(cvs_reader.getTable().getRow(0)[0].replaceAll(".tar.gz", ""));
 		System.out.println(Utils.removeQuotes(cvs_reader.getTable().getRow(0)[2]).replaceAll(".tar.gz", ""));
 		
 	}
@@ -78,58 +80,92 @@ public class ExtendedColumnTypeDataset {
 		String column_annotation_file;
 		
 		
-		DBpediaOntology dbo = new DBpediaOntology();
+		//TODO ignore annotations
+		DBpediaOntology dbo = new DBpediaOntology(false);
 		
 		
 		
 		WriteFile global_writer = new WriteFile(output_path+"column_types.csv");
 		
 		
-		for (String file_name : files){
+		//for (int i=0; i<files.size(); i++){
+		for (int i=0; i<5; i++){
 			
-			WriteFile local_writer = new WriteFile(column_types_path + file_name + ".csv");
+			column_annotation_file = config.t2d_path + config.columns_annotations_folder + files.get(i) + ".csv";
 			
-			
-			column_annotation_file = config.t2d_path + config.columns_annotations_folder + file_name + ".csv";
-			
-			//System.out.println(column_annotation_file);
+			System.out.println(column_annotation_file);
 			
 			CVSReader cvs_reader = new CVSReader(column_annotation_file);
 			
-			for (int i=0; i<cvs_reader.getTable().getSize(); i++){
-				String uri_dbpedia = Utils.removeQuotes(cvs_reader.getTable().getRow(i)[0]);
+			if (cvs_reader.getTable().isEmpty()){
+				System.out.println("\tEmpty");
+				continue;
+			}
+			
+			
+			WriteFile local_writer = new WriteFile(column_types_path + files.get(i) + ".csv");
+			
+			
+			for (int j=0; j<cvs_reader.getTable().getSize(); j++){
+				//File format: "http://dbpedia.org/ontology/birthDate","geb.","False","2"
 				
-				//No correspondence to dbpedia
-				OWLEntity ent = dbo.getOWLEntity(IRI.create(uri_dbpedia));
-				if (ent==null)
-					continue;
 				
-				String types="";
-				if (ent.isOWLDataProperty()){
-					for (OWLDatatype datatype : dbo.getRangeDatatypesDataProperty(ent.asOWLDataProperty())){
-						types+=datatype.toStringID()+"|";
-					}
-				}
-				else if (ent.isOWLObjectProperty()){
-					for (OWLClass cls : dbo.getRangeClassesObjectProperty(ent.asOWLObjectProperty())){
-						types+=cls.toStringID()+"|";
-					}
-				}
+				//Get if primary key: rdfs:label or column type=true
+				//Use table type then.
 				
-				//No types in dbpedia
-				if (types.equals("")){
-					System.err.println("No range types for " + uri_dbpedia);
+				
+				if(cvs_reader.getTable().getRow(j).length<4){
+					System.out.println("\tWrong row");
 					continue;
 				}
 				
+				//In case of primary key, the rdfs:label is given. Use then teh type of the table instead of the type of the range of the property
+				boolean isPrimaryKey = Utils.removeQuotes(cvs_reader.getTable().getRow(j)[2]).equals("True") || Utils.removeQuotes(cvs_reader.getTable().getRow(j)[0]).equals(Namespace.RDFS_LABEL);
 				
-				//TODO get if primary key!!!: rdfs:label or column type =true
-				//Use table type then....
 				
-				global_writer.writeLine("\""+file_name + "\"," + cvs_reader.getTable().getRow(i)[3] + ",\"" + types + "\"");
+
+				String types_str="";
+				
+				if (!isPrimaryKey){
+					String uri_dbpedia = Utils.removeQuotes(cvs_reader.getTable().getRow(j)[0]);
+					
+					
+					//No correspondence to dbpedia
+					OWLEntity ent = dbo.getOWLEntity(IRI.create(uri_dbpedia));
+					if (ent==null)
+						continue;
+					
+
+					if (ent.isOWLDataProperty()){
+						for (OWLDatatype datatype : dbo.getRangeDatatypesDataProperty(ent.asOWLDataProperty())){
+							types_str+=datatype.toStringID()+"|";
+						}
+					}
+					else if (ent.isOWLObjectProperty()){
+						for (OWLClass cls : dbo.getRangeClassesObjectProperty(ent.asOWLObjectProperty())){
+							types_str+=cls.toStringID()+"|";
+						}
+					}
+					
+					//No types in dbpedia
+					if (types_str.equals("")){
+						System.err.println("No range types for " + uri_dbpedia);
+						continue;
+					}
+					else{ //remove last "|"
+						types_str = types_str.substring(0, types_str.length()-1);
+					}
+				}
+				else{
+					//We use the type of the table
+					types_str+=type_tables.get(i);
+				}
+				
+				
+				global_writer.writeLine("\""+files.get(i) + "\",\"" + cvs_reader.getTable().getRow(j)[3] + "\",\"" + cvs_reader.getTable().getRow(j)[2] + "\",\"" + types_str + "\"");
 				
 				//
-				local_writer.writeLine(cvs_reader.getTable().getRow(i)[3] + ",\"" + types + "\"");
+				local_writer.writeLine(cvs_reader.getTable().getRow(j)[3]+ "\",\"" + cvs_reader.getTable().getRow(j)[2] + "\",\"" + types_str + "\"");
 			
 			}
 			

@@ -32,6 +32,10 @@ public class Table {
 	}
 	
 	
+	public boolean isEmpty(){
+		return table_data.isEmpty();
+	}
+	
 	public void setEmptyTable(){
 		table_data.clear();
 	}

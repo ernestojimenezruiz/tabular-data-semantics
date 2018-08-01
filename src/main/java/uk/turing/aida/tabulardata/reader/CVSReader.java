@@ -5,15 +5,20 @@
 package uk.turing.aida.tabulardata.reader;
 
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 
+import com.opencsv.CSVIterator;
+import com.opencsv.CSVReader;
 import uk.turing.aida.tabulardata.Table;
 import uk.turing.aida.tabulardata.utils.ReadFile;
 
 /**
- * Basic reader. One should have a more robust implementation. Take into account what is inside ""
+ * Using OpenCSV
  * @author ernesto
- * Created on 24 Jul 2018
  *
+ * Created on 24 Jul 2018
+ * 
  */
 public class CVSReader {
 
@@ -22,17 +27,50 @@ public class CVSReader {
 	Table table = new Table();
 	
 	
-	public CVSReader (String fstring) throws FileNotFoundException{
+	public CVSReader (String fstring) throws IOException{
 		this(fstring, false);
 		
 	}
 	
 	
-	public CVSReader (String fstring, boolean withTableHeader) throws FileNotFoundException{
-		readCVSFile(fstring, withTableHeader);
+	public CVSReader (String fstring, boolean withTableHeader) throws IOException{
+		readCSVFile(fstring, withTableHeader);
 		
 	}
 	
+	
+	
+	
+	protected void readCSVFile(String fstring, boolean withTableHeader) throws IOException{
+		
+		//Clear table 
+		table.setEmptyTable();
+				
+		 //CSVIterator iterator = new CSVIterator(new CSVReader(new FileReader(fstring)));
+		 CSVReader reader = new CSVReader(new FileReader(fstring));
+		 String [] nextRecord;//nextRecord
+		  while ((nextRecord = reader.readNext()) != null) {
+		 //for(String[] nextLine : iterator) {
+			 // nextLine[] is an array of values from the line
+		     //System.out.println(nextLine[0] + nextLine[1] + "etc...");
+			  
+			//header
+			if (!table.hasColumnNames() && withTableHeader)
+				table.addColumnNames(nextRecord);
+			else
+				table.addRow(nextRecord);
+			  
+		 }
+		  
+		  reader.close();
+		
+		 
+	}
+	
+	/**
+	 * Custom an incomplete csv reader
+	 * @deprecated
+	 */
 	public void readCVSFile(String fstring, boolean withTableHeader) throws FileNotFoundException{
 		
 		ReadFile reader = new ReadFile(fstring);

@@ -222,6 +222,7 @@ public class DBpediaLookup {
 		word="virgin";
 		//word="berlin";
 		word="west%20midlands";
+		word="conglomerates";
 		
 		String type="";
 		//type= "AdministrativeRegion";
