@@ -86,10 +86,11 @@ public class ExtendedColumnTypeDataset {
 		
 		
 		WriteFile global_writer = new WriteFile(output_path+"column_types.csv");
+		WriteFile global_writer_only_classes = new WriteFile(output_path+"column_types_only_classes.csv");
 		
 		
-		//for (int i=0; i<files.size(); i++){
-		for (int i=0; i<5; i++){
+		for (int i=0; i<files.size(); i++){
+		//for (int i=0; i<5; i++){
 			
 			column_annotation_file = config.t2d_path + config.columns_annotations_folder + files.get(i) + ".csv";
 			
@@ -125,6 +126,8 @@ public class ExtendedColumnTypeDataset {
 				
 
 				String types_str="";
+				boolean object_range=false;
+				
 				
 				if (!isPrimaryKey){
 					String uri_dbpedia = Utils.removeQuotes(cvs_reader.getTable().getRow(j)[0]);
@@ -140,11 +143,13 @@ public class ExtendedColumnTypeDataset {
 						for (OWLDatatype datatype : dbo.getRangeDatatypesDataProperty(ent.asOWLDataProperty())){
 							types_str+=datatype.toStringID()+"|";
 						}
+						object_range=false;
 					}
 					else if (ent.isOWLObjectProperty()){
 						for (OWLClass cls : dbo.getRangeClassesObjectProperty(ent.asOWLObjectProperty())){
 							types_str+=cls.toStringID()+"|";
 						}
+						object_range=true;
 					}
 					
 					//No types in dbpedia
@@ -159,13 +164,18 @@ public class ExtendedColumnTypeDataset {
 				else{
 					//We use the type of the table
 					types_str+=type_tables.get(i);
+					object_range=true;
 				}
 				
+				
+				//Only meaningfull class types
+				if (object_range && !types_str.contains("http://www.w3.org/2002/07/owl#Thing"))
+					global_writer_only_classes.writeLine("\""+files.get(i) + "\",\"" + cvs_reader.getTable().getRow(j)[3] + "\",\"" + cvs_reader.getTable().getRow(j)[2] + "\",\"" + types_str + "\"");
 				
 				global_writer.writeLine("\""+files.get(i) + "\",\"" + cvs_reader.getTable().getRow(j)[3] + "\",\"" + cvs_reader.getTable().getRow(j)[2] + "\",\"" + types_str + "\"");
 				
 				//
-				local_writer.writeLine(cvs_reader.getTable().getRow(j)[3]+ "\",\"" + cvs_reader.getTable().getRow(j)[2] + "\",\"" + types_str + "\"");
+				local_writer.writeLine("\""+cvs_reader.getTable().getRow(j)[3]+ "\",\"" + cvs_reader.getTable().getRow(j)[2] + "\",\"" + types_str + "\"");
 			
 			}
 			
@@ -183,6 +193,7 @@ public class ExtendedColumnTypeDataset {
 		
 		
 		global_writer.closeBuffer();
+		global_writer_only_classes.closeBuffer();
 		
 	}
 	
