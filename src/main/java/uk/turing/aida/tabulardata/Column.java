@@ -52,5 +52,9 @@ public class Column {
 	}
 	
 	
+	public int getSize(){
+		return column_data.size();
+	}
+	
 	
 }

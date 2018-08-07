@@ -91,6 +91,26 @@ public class Table {
 	}
 	
 	
+	//Assuming all rows has the same size.... 
+	public int getNumberOfColumns(){
+		if (table_data.isEmpty())
+			return 0;
+		return getRow(0).length;
+	}
+	
+	
+	public List<Integer> getColumnIndexesAsList(){
+		List<Integer> column_indexes = new ArrayList<Integer>();
+		
+		for (int i=0; i<getNumberOfColumns(); i++){
+			column_indexes.add(i);
+		}
+		
+		
+		return column_indexes;
+	}
+	
+	
 	
 	
 	public String getCell(int rid, int cid){

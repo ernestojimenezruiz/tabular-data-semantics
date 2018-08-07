@@ -10,6 +10,7 @@ import java.util.Set;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
@@ -27,6 +28,45 @@ import org.apache.jena.rdf.model.Statement;
 public class DBpediaEndpoint {
 
 	private final String ENDPOINT = "https://dbpedia.org/sparql";
+	
+	
+	public Set<String> getTypesOfObjectForPredicate(String uri_predicate){
+		
+		
+		Set<String> types = new HashSet<String>();
+		
+		Model model = ModelFactory.createDefaultModel();
+		
+		//prediacate
+		Property predicate = model.createProperty(uri_predicate);
+		
+		
+		//Query to retrieve predicates and objects for subject
+		Query q = QueryFactory.create(craeteSPARQLQuery_TypeObjectsForPredicate(uri_predicate));
+
+		
+		QueryExecution qe = QueryExecutionFactory.sparqlService(ENDPOINT, q); 
+		try {
+			ResultSet res = qe.execSelect();
+			while( res.hasNext()) {
+				
+				QuerySolution soln = res.next();				
+				RDFNode object_type = soln.get("?t");
+				System.out.println(""+object_type);
+				
+				types.add(object_type.toString());
+				
+			}
+		    
+		} finally {
+			qe.close();
+		}
+		
+		return types;
+		
+	}
+	
+	
 	
 	
 	public Set<Statement> getTriplesForSubject(String uri_subject){
@@ -67,6 +107,11 @@ public class DBpediaEndpoint {
 	
 	
 	
+	/**
+	 * To extract a portion of dbpedia relevant to the subject
+	 * @param uri_subject
+	 * @return
+	 */	
 	private String createSPARQLQueryForSubject(String uri_subject){
 		
 		return //"PREFIX foaf: <http://xmlns.com/foaf/0.1/> \n "+
@@ -77,7 +122,18 @@ public class DBpediaEndpoint {
 				+ "&& ?p != <http://dbpedia.org/ontology/abstract>)"
 				+ "}";
 		
+	}
+	
+	
+	
+	
+	private String craeteSPARQLQuery_TypeObjectsForPredicate(String uri_predicate){
 		
+		return //"PREFIX foaf: <http://xmlns.com/foaf/0.1/> \n "+
+				"SELECT DISTINCT ?t \n"
+				+ "WHERE { ?s <" + uri_predicate + "> ?o . "
+				+ "?o <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?t ."
+				+ "}";
 		
 	}
 	
@@ -88,17 +144,21 @@ public class DBpediaEndpoint {
 	
 	public static void main(String[] args) {
 		
-		String uri_subject = "http://dbpedia.org/resource/Berlin";
+		String uri_subject;
+		uri_subject = "http://dbpedia.org/resource/Berlin";
 		
-		//String uri_subject = "http://dbpedia.org/resource/Plusnet";
-		//String uri_subject = "http://dbpedia.org/resource/Virgin";
+		uri_subject = "http://dbpedia.org/resource/Plusnet";
+		uri_subject = "http://dbpedia.org/resource/Virgin";
+		uri_subject = "http://dbpedia.org/resource/Source_(game_engine)";
 		
 		DBpediaEndpoint dbe = new DBpediaEndpoint();
 	
 		for (Statement st : dbe.getTriplesForSubject(uri_subject)){
 			System.out.println(st.toString());
-		}
+		}	
 		
+		
+		//dbe.getTypesOfObjectForPredicate("http://dbpedia.org/ontology/industry");
 	}
 
 	
