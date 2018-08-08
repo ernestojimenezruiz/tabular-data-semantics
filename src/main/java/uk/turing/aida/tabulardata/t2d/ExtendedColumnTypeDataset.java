@@ -144,7 +144,7 @@ public class ExtendedColumnTypeDataset {
 						object_range=false;
 					}
 					else if (ent.isOWLObjectProperty()){
-						for (OWLClass cls : dbo.getRangeClassesObjectProperty(ent.asOWLObjectProperty())){
+						for (OWLClass cls : dbo.getExplicitRangeClassesObjectProperty(ent.asOWLObjectProperty())){
 							types_str+=cls.toStringID()+"|";
 						}
 						object_range=true;

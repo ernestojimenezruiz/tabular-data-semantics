@@ -21,14 +21,15 @@ import uk.turing.aida.tabulardata.Column;
 import uk.turing.aida.tabulardata.Table;
 
 /**
- *
- * Simple predictor based on simple DBPedia look-up queries.
- * Keeps max voted types(s).
+ * Predictor based on a 2-round DBPedia look-up queries.
+ * First round we get an approximation of types
+ * Second round we perform the look-up by filter by class
+ * Keeps max voted types(s).  
  * @author ernesto
  * Created on 6 Aug 2018
  *
  */
-public class DBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
+public class RefinedDBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 	
 	//Number of cells for which to call to DBpedia: ALL, or a percentage of cells 10%...90% see variability
 	private int MAX_NUM_CALLS=-1;
@@ -37,9 +38,6 @@ public class DBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 	
 	//Top-k types
 	private int TOP_K_TYPES=5;
-	
-	
-	private String class_filter_lookup="";
 	
 	private DBpediaLookup dblup = new DBpediaLookup();
 	
@@ -50,19 +48,12 @@ public class DBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 	 * 
 	 * @param max_hits Number of entities we keep in each call
 	 * @param max_types Number of types we return (Top-k) 
-	 * @param class_filter Class filter for look-up
 	 */
-	public DBpediaLookUpTypePredictor(int max_hits, int max_types, String class_filter){
-		MAX_NUM_HITS=max_hits;
-		TOP_K_TYPES=max_types;
-		
-		class_filter_lookup=class_filter;
+	public RefinedDBpediaLookUpTypePredictor(int max_hits, int max_types){
 		
 	}
 	
 	
-
-	@Override
 	/**
 	 * If the columns storing "entities" are known. Useful for tests
 	 */
@@ -97,13 +88,14 @@ public class DBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 		TreeMap<String, Integer> hitsfortypes = new TreeMap<String, Integer>();
 		
 		
+		//TODO
+		
 		for (int cell_id=0; cell_id<MAX_NUM_CALLS; cell_id++){		
 			
 			//Entity to set of types
 			Map<String, Set<String>> lookup_hits = 
 					dblup.getDBpediaEntitiesAndClasses(
 							col.getElement(cell_id), 
-							class_filter_lookup,
 							MAX_NUM_HITS);
 			
 			

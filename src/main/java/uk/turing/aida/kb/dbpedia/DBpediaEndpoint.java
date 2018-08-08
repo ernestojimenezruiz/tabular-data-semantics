@@ -30,19 +30,36 @@ public class DBpediaEndpoint {
 	private final String ENDPOINT = "https://dbpedia.org/sparql";
 	
 	
+	
+	
 	public Set<String> getTypesOfObjectForPredicate(String uri_predicate){
+		
+		return getURIsForQuery(
+				craeteSPARQLQuery_TypeObjectsForPredicate(uri_predicate));
+		
+	}
+	
+	
+	
+	public Set<String> getTypesForSubject(String uri_resource){
+		
+		return getURIsForQuery(
+				createSPARQLQuery_TypesForSubject(uri_resource));
+		
+		
+	}
+	
+	
+	
+	
+	protected Set<String> getURIsForQuery(String query){
 		
 		
 		Set<String> types = new HashSet<String>();
 		
-		Model model = ModelFactory.createDefaultModel();
-		
-		//prediacate
-		Property predicate = model.createProperty(uri_predicate);
-		
 		
 		//Query to retrieve predicates and objects for subject
-		Query q = QueryFactory.create(craeteSPARQLQuery_TypeObjectsForPredicate(uri_predicate));
+		Query q = QueryFactory.create(query);
 
 		
 		QueryExecution qe = QueryExecutionFactory.sparqlService(ENDPOINT, q); 
@@ -69,8 +86,14 @@ public class DBpediaEndpoint {
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	
 	public Set<Statement> getTriplesForSubject(String uri_subject){
-		
 		
 		Set<Statement> triples = new HashSet<Statement>();
 		
@@ -126,6 +149,22 @@ public class DBpediaEndpoint {
 	
 	
 	
+	/**
+	 * To extract class types of the subject
+	 * @param uri_subject
+	 * @return
+	 */	
+	private String createSPARQLQuery_TypesForSubject(String uri_subject){
+		
+		return //"PREFIX foaf: <http://xmlns.com/foaf/0.1/> \n "+
+				"SELECT DISTINCT ?t \n"
+				+ "WHERE { <" + uri_subject + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?t . "
+				+ "}";
+		
+	}
+	
+	
+	
 	
 	private String craeteSPARQLQuery_TypeObjectsForPredicate(String uri_predicate){
 		
@@ -152,10 +191,12 @@ public class DBpediaEndpoint {
 		uri_subject = "http://dbpedia.org/resource/Source_(game_engine)";
 		
 		DBpediaEndpoint dbe = new DBpediaEndpoint();
+		
+		System.out.println(dbe.createSPARQLQuery_TypesForSubject(uri_subject));
 	
-		for (Statement st : dbe.getTriplesForSubject(uri_subject)){
-			System.out.println(st.toString());
-		}	
+		//for (Statement st : dbe.getTriplesForSubject(uri_subject)){
+		//	System.out.println(st.toString());
+		//}	
 		
 		
 		//dbe.getTypesOfObjectForPredicate("http://dbpedia.org/ontology/industry");

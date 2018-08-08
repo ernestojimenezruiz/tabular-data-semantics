@@ -71,7 +71,7 @@ public class CVSReader {
 	 * Custom an incomplete csv reader
 	 * @deprecated
 	 */
-	public void readCVSFile(String fstring, boolean withTableHeader) throws FileNotFoundException{
+	protected void readCVSFile(String fstring, boolean withTableHeader) throws FileNotFoundException{
 		
 		ReadFile reader = new ReadFile(fstring);
 		

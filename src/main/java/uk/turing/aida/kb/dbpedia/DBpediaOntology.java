@@ -26,6 +26,8 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import uk.turing.aida.kb.visitors.ClassRangeVisitor;
 import uk.turing.aida.kb.visitors.DataRangeVisitor;
+import uk.turing.aida.reasoner.HermiTAccess;
+import uk.turing.aida.reasoner.ReasonerAccessImpl;
 
 
 /**
@@ -42,6 +44,9 @@ public class DBpediaOntology {
 	protected OWLOntologyManager manager_onto;
 	protected OWLOntologyLoaderConfiguration loader_config;
 	protected OWLOntology dbp_ontology;
+	
+	protected ReasonerAccessImpl reasoner;
+	
 	
 	DBpediaConfiguration dbp_config = new DBpediaConfiguration();
 	
@@ -75,6 +80,10 @@ public class DBpediaOntology {
 			dbp_ontology = manager_onto.loadOntology(IRI.create(dbp_config.uri_ontology));
 			
 	        
+			//Init reasoner
+			reasoner = new HermiTAccess(manager_onto, dbp_ontology, false);
+			
+			
 	        //System.out.println("DBpedia ontology axioms: " + dbp_ontology.getAxiomCount());
 	        
 	        
@@ -86,6 +95,18 @@ public class DBpediaOntology {
 			throw new OWLOntologyCreationException();
 		}
 	}
+	
+	
+	
+	public void classifyOntology() throws Exception{
+
+		if (!reasoner.isOntologyClassified())
+			reasoner.classifyOntology(true, true);
+		
+		
+		
+	}
+	
 	
 	
 	
@@ -116,7 +137,43 @@ public class DBpediaOntology {
 		
 	}
 	
+	
+	
+	/**
+	 * Get entailed class types
+	 * @param oprop
+	 * @return
+	 * @throws Exception 
+	 */
+	public Set<OWLClass> getSuperClasses(OWLClass cls, boolean direct) throws Exception{
+	
+		if (!reasoner.isOntologyClassified())
+			reasoner.classifyOntology(true, true);
 		
+		return reasoner.getReasoner().getSuperClasses(cls, direct).getFlattened();
+		
+	}
+	
+	
+		
+	
+	
+	/**
+	 * Get entailed class types
+	 * @param oprop
+	 * @return
+	 * @throws Exception 
+	 */
+	public Set<OWLClass> getEntailedRangeClassesObjectProperty(OWLObjectProperty oprop, boolean direct) throws Exception{
+	
+		if (!reasoner.isOntologyClassified())
+			reasoner.classifyOntology(true, true);
+		
+		return reasoner.getReasoner().getObjectPropertyRanges(oprop, direct).getFlattened();
+		
+	}
+	
+	
 	
 	
 	
@@ -125,7 +182,7 @@ public class DBpediaOntology {
 	 * @param oprop
 	 * @return
 	 */
-	public Set<OWLClass> getRangeClassesObjectProperty(OWLObjectProperty oprop){
+	public Set<OWLClass> getExplicitRangeClassesObjectProperty(OWLObjectProperty oprop){
 		
 		Set<OWLClass> types = new HashSet<OWLClass>();
 		
