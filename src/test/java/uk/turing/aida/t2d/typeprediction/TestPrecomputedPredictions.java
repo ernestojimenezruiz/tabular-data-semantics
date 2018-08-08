@@ -4,9 +4,8 @@
  *******************************************************************************/
 package uk.turing.aida.t2d.typeprediction;
 
-import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -14,27 +13,21 @@ import java.util.Map;
 import java.util.Set;
 
 import org.semanticweb.owlapi.model.OWLClass;
-
 import uk.turing.aida.kb.dbpedia.DBpediaOntology;
-import uk.turing.aida.tabulardata.Table;
 import uk.turing.aida.tabulardata.reader.CVSReader;
 import uk.turing.aida.tabulardata.t2d.T2DConfiguration;
-import uk.turing.aida.tabulardata.utils.WriteFile;
-import uk.turing.aida.typeprediction.ColumnClassTypePredictor;
+
 
 /**
- *
- * Template to test the type predictors
- * 
+ * Computes Precision and Recall for already computed predictions
  * @author ernesto
- * Created on 7 Aug 2018
+ * Created on 8 Aug 2018
  *
  */
-public abstract class TestTypePredictor {
+public class TestPrecomputedPredictions {
 
-	T2DConfiguration config = new T2DConfiguration();
 	
-	ColumnClassTypePredictor type_predictor;
+	T2DConfiguration config = new T2DConfiguration();
 	
 	DBpediaOntology dbpo;	
 	
@@ -44,9 +37,6 @@ public abstract class TestTypePredictor {
 	private double precision = 0.0, recall = 0.0, fmeasure = 0.0;
 	
 	
-	String output_file_name;
-	
-	
 	boolean only_primary_columns;
 	
 	//TODO Use ColumnType?
@@ -54,25 +44,23 @@ public abstract class TestTypePredictor {
 	
 	Map<String, Map<Integer, Set<String>>> predicted_types = new HashMap<String, Map<Integer, Set<String>>>();
 	
-		
+	String predicted_types_file; 
 	
-	public TestTypePredictor(boolean only_primary_columns) throws Exception{
+	
+	public TestPrecomputedPredictions(boolean only_primary_columns, String predicted_types_file) throws Exception{
 		
 		this.only_primary_columns=only_primary_columns;
 		
-		config.loadConfiguration();		
+		this.predicted_types_file = predicted_types_file;
+		
+		config.loadConfiguration();	
 		
 	}
 	
 	
-	
 	public void performTest() throws Exception{
-		readGroundTruthaAndComputePrediction();
-		
-		
-		//if (print_prediction)
-		printPredictionIntoFile();					
-		
+		readGroundTruthaAndPrediction();
+							
 		computeStandardMeaures();		
 		
 	}
@@ -81,116 +69,115 @@ public abstract class TestTypePredictor {
 	
 	
 	
-	protected void readGroundTruthaAndComputePrediction() throws Exception{
+	protected void readGroundTruthaAndPrediction() throws Exception{
 		
 		//Read GS which will lead the evaluation
 		CVSReader gs_reader = new CVSReader(config.t2d_path + config.extended_type_gs_file);
-		//CVSReader gs_reader = new CVSReader(config.t2d_path + config.partial_reference_file);
 		
+		CVSReader prediction_reader = new CVSReader(predicted_types_file);
+		
+				
 		if (gs_reader.getTable().isEmpty()){
 			System.err.println("File '" + config.t2d_path + config.extended_type_gs_file + "' is empty.");
 			return;
 		}		
 		
+		
+		
+		//GROUND TRUTH
 		//We init with first table id
 		String table_id=gs_reader.getTable().getRow(0)[0];
-		List<Integer> column_ids= new ArrayList<Integer>();
+		List<Integer> cololunn_ids= new ArrayList<Integer>();
 		Map<Integer, Set<String>> reference_map= new HashMap<Integer, Set<String>>();
 		
 		for (int rid=0; rid<gs_reader.getTable().getSize(); rid++){
 			String[] row = gs_reader.getTable().getRow(rid);
 			
-			//System.out.println(row[0] + " " + row[1] + "  " +  row[2] + " " + row[3]);
-			File file = new File(config.t2d_path + config.tables_folder + row[0] + ".csv");
-			if (!file.exists()){
-				System.err.println("The file '" + config.t2d_path + config.tables_folder + row[0] + ".csv' does not exixt.");
-				continue;
-			}
-						
-			
 			//new table row
 			if (!table_id.equals(row[0])){
-				
-				
-				System.out.println("Computing predictions for table '" + table_id + "'.");
-				
-				//call predictor with previous values
-				getPrediction(table_id, column_ids);
+								
 				//store reference values
 				gold_standard_types.put(table_id, new HashMap<Integer, Set<String>>());
 				gold_standard_types.get(table_id).putAll(reference_map);
 				
 				//Set new table and clear values
 				table_id=row[0];
-				column_ids.clear();
-				reference_map.clear();
-				
-				
+				cololunn_ids.clear();
+				reference_map.clear();				
 			}
 			
 			
 			//Populate elements for working table
 			if (!only_primary_columns || Boolean.valueOf(row[2])){
-				column_ids.add(Integer.valueOf(row[1]));
+				cololunn_ids.add(Integer.valueOf(row[1]));
 				reference_map.put(Integer.valueOf(row[1]), new HashSet<String>());
 				
 				//There may be more than one type
 				for (int i=3; i<row.length; i++)
 					reference_map.get(Integer.valueOf(row[1])).add(dbpedia_uri+row[i]);
-			}			
+			}	
+			if (table_id.equals("29414811_12_251152470253168163"))
+				System.out.println(reference_map);
 			
-		}
-		//call predictor for last table values
-		getPrediction(table_id, column_ids);
+		}		
 		//store reference types
 		gold_standard_types.put(table_id, new HashMap<Integer, Set<String>>());
 		gold_standard_types.get(table_id).putAll(reference_map);
 		
 		
-				
-	}
-	
-	
-	
-	protected void printPredictionIntoFile(){
 		
-		WriteFile writer = new WriteFile(config.t2d_path + "output_results/" + output_file_name + ".csv");
 		
-		for (String tbl_id : predicted_types.keySet()){
-			for (Integer col_id : predicted_types.get(tbl_id).keySet()){
-				
-				String line = "\""+ tbl_id + "\",\"" + col_id + "\"";
+		
+		//PREDICTION
+		table_id=prediction_reader.getTable().getRow(0)[0];		
+		Map<Integer, Set<String>> prediction_map= new HashMap<Integer, Set<String>>();
+		
+		for (int rid=0; rid<prediction_reader.getTable().getSize(); rid++){
+			String[] row = prediction_reader.getTable().getRow(rid);
+			
+			//new table row
+			if (!table_id.equals(row[0])){
 								
-				for (String type: predicted_types.get(tbl_id).get(col_id)){
-					line+= ",\"" + type.replaceAll(dbpedia_uri, "") + "\""; 
-				}
+				//store prediction values
+				predicted_types.put(table_id, new HashMap<Integer, Set<String>>());
+				predicted_types.get(table_id).putAll(prediction_map);
 				
-				writer.writeLine(line);
-				
+				//Set new table and clear values
+				table_id=row[0];
+				cololunn_ids.clear();
+				prediction_map.clear();	
 			}
-		}
+			
+					
+			//Populate elements for working table
+				
+			prediction_map.put(Integer.valueOf(row[1]), new HashSet<String>());
+			
+			//There may be more than one type
+			for (int i=2; i<row.length; i++)
+				prediction_map.get(Integer.valueOf(row[1])).add(dbpedia_uri+row[i]);
+
+			
+			if (table_id.equals("29414811_12_251152470253168163"))
+				System.out.println(prediction_map);
+			
+		}		
+		//store prediction types
+		predicted_types.put(table_id, new HashMap<Integer, Set<String>>());
+		predicted_types.get(table_id).putAll(prediction_map);
 		
-		writer.closeBuffer();
+		
+				
 	}
+	
+	
+	
+	
 	
 
 	
 	
-	protected void getPrediction(String table_name, List<Integer> column_ids) throws Exception{
-		
-		CVSReader table_reader = new CVSReader(config.t2d_path + config.tables_folder + table_name + ".csv");
-		
-		predicted_types.put(table_name, getPrediction(table_reader.getTable(), column_ids));
-		
-	}
-
-
-	protected Map<Integer, Set<String>> getPrediction(Table table, List<Integer> column_ids) throws Exception{
-		
-		createPredictor();//initializa predictor	
-		return type_predictor.getClassTypesForTable(table, column_ids);
-		
-	}
+	
 	
 	
 	
@@ -213,12 +200,16 @@ public abstract class TestTypePredictor {
 		Set<String> intersection = new HashSet<String>();
 		
 		
-		//Entailed types
-		WriteFile writer = new WriteFile(config.t2d_path + "output_results/" + output_file_name + "_entailed" + ".csv");
-		
 		for (String table_id : gold_standard_types.keySet()){
+			
+			if (!predicted_types.containsKey(table_id))  //in case there are missing tables in prediction
+				continue;
+			
 			for (Integer col_id : gold_standard_types.get(table_id).keySet()){
 				
+				if (!predicted_types.get(table_id).containsKey(col_id))
+					continue;		//in case we only consider primary columns
+					
 				
 				//Local ground truth types for a given colums
 				for (String gt_local_type : gold_standard_types.get(table_id).get(col_id)){
@@ -262,13 +253,6 @@ public abstract class TestTypePredictor {
 					}
 				}
 				
-				String line = "\""+ table_id + "\",\"" + col_id + "\"";
-				
-				for (String type: p_local_types){
-					line+= ",\"" + type.replaceAll(dbpedia_uri, "") + "\""; 
-				}
-				
-				writer.writeLine(line);
 				
 				
 				
@@ -277,8 +261,14 @@ public abstract class TestTypePredictor {
 				intersection.addAll(p_local_types);
 				intersection.retainAll(gt_local_types);
 				
-				local_precision = (double)intersection.size()/(double)p_local_types.size();
-				local_recall = (double)intersection.size()/(double)gt_local_types.size();
+				if (p_local_types.isEmpty()){
+					local_precision=0.0;
+					local_recall=0.0;
+				}
+				else{
+					local_precision = (double)intersection.size()/(double)p_local_types.size();
+					local_recall = (double)intersection.size()/(double)gt_local_types.size();
+				}
 				
 				precision+=local_precision;
 				recall+=local_recall;
@@ -297,7 +287,6 @@ public abstract class TestTypePredictor {
 		}//end table-column iterations
 		
 		
-		writer.closeBuffer();
 		
 		
 		//Global precision and recall as avreage of local values
@@ -308,8 +297,7 @@ public abstract class TestTypePredictor {
 		fmeasure = (2*precision*recall) / (precision + recall);
 		
 				
-		//TODO
-		//3. Micro measures vs macro measures....	
+		
 
 	}
 	
@@ -335,11 +323,31 @@ public abstract class TestTypePredictor {
 	private boolean filterType(OWLClass cls) {
 		return cls.isOWLThing() || !cls.getIRI().toString().contains(dbpedia_uri);
 	}
-
-
-
-
-	protected abstract void createPredictor();
-
 	
+	
+	
+	
+	
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		
+		try {
+			T2DConfiguration config = new T2DConfiguration();
+		
+			config.loadConfiguration();
+		
+			TestPrecomputedPredictions test = new TestPrecomputedPredictions(false, config.t2d_path + "output_results/lookup_col_classes_jiaoyan.csv");
+			
+			test.performTest();
+			
+			System.out.println(test.getPrecision() + " " + test.getRecall() + " " + test.getFmeasure());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
 }
