@@ -85,65 +85,7 @@ public class RefinedDBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 		
 		Set<String> types = new HashSet<String>();
 		
-		TreeMap<String, Integer> hitsfortypes = new TreeMap<String, Integer>();
-		
-		
-		//TODO
-		
-		for (int cell_id=0; cell_id<MAX_NUM_CALLS; cell_id++){		
-			
-			//Entity to set of types
-			Map<String, Set<String>> lookup_hits = 
-					dblup.getDBpediaEntitiesAndClasses(
-							col.getElement(cell_id), 
-							MAX_NUM_HITS);
-			
-			
-			
-			for (String entity : lookup_hits.keySet()){
-
-				//Lookup types
-				for (String cls: lookup_hits.get(entity)){
-					
-					if (!filter(cls)){
-						if (!hitsfortypes.containsKey(cls))
-							hitsfortypes.put(cls, 0);
-						
-						hitsfortypes.put(cls, hitsfortypes.get(cls)+1);
-					}
-				}
-				
-				//Endpoint types (some times the types provided by look-up are incomplete)
-				for (String cls: dbend.getTypesForSubject(entity)){
-					
-					if (!filter(cls)){
-						if (!hitsfortypes.containsKey(cls))
-							hitsfortypes.put(cls, 0);
-						
-						
-						hitsfortypes.put(cls, hitsfortypes.get(cls)+1);
-					}
-				}
-				
-			}
-			
-		}
-		
-		
-		//Probably not the best solution but a clean one
-		TreeMap<String, Integer> sortedhitsfortypes = new TreeMap<String, Integer>(new ValueComparator(hitsfortypes));
-		for (String key: sortedhitsfortypes.navigableKeySet()){
-			System.out.println(key + "  " + sortedhitsfortypes.get(key));
-		}
-		
-		
-		//TODO Top 5: TOP_K_TYPES
-		int i=0;
-		for (String key: sortedhitsfortypes.navigableKeySet()){
-			while (i<TOP_K_TYPES){
-				types.add(key);
-			}
-		}
+		//TBC
 		
 		
 		
