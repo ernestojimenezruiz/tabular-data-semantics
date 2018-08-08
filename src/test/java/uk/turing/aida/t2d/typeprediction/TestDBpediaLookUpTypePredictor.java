@@ -4,16 +4,6 @@
  *******************************************************************************/
 package uk.turing.aida.t2d.typeprediction;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import uk.turing.aida.tabulardata.Table;
-import uk.turing.aida.tabulardata.reader.CVSReader;
-import uk.turing.aida.tabulardata.t2d.T2DConfiguration;
 import uk.turing.aida.typeprediction.DBpediaLookUpTypePredictor;
 
 /**
@@ -26,16 +16,59 @@ import uk.turing.aida.typeprediction.DBpediaLookUpTypePredictor;
  */
 public class TestDBpediaLookUpTypePredictor extends TestTypePredictor {
 
+	int max_hits;
+	int max_types;
+	String filter_type;
 	
 	
-	public TestDBpediaLookUpTypePredictor(boolean only_primary_columns) throws Exception{
+	public TestDBpediaLookUpTypePredictor(boolean only_primary_columns, int max_hits, int max_types, String filtertype) throws Exception{
 		super(only_primary_columns);
+		this.max_hits = max_hits;
+		this.max_types = max_types;
+		this.filter_type = filtertype;
 	}
 	
 	
 	
-	public void createPredictor(){
-		type_predictor = new DBpediaLookUpTypePredictor(0, 0, null);
+	protected void createPredictor(){
+		
+		output_file_name = "lookup_col_classes_hits_"+ max_hits + "_types_" + max_types;
+		
+		type_predictor = new DBpediaLookUpTypePredictor(max_hits, max_types, filter_type);
+	}
+	
+	
+	public static void main (String[] args){
+		
+		
+		int[] hits = {1,2,3,5};
+		int[] types = {1,2,3,5};
+		//int[] hits = {1,2};
+		//int[] types = {1,2};
+		
+		
+		try {
+			
+			
+			for (int n_hits : hits){
+				for (int n_types : types){
+			
+			
+				TestDBpediaLookUpTypePredictor test = new TestDBpediaLookUpTypePredictor(false, n_hits, n_types, "");
+				
+				test.performTest();
+				
+				System.out.println(n_hits + " " + n_types +" " + test.getPrecision() + " " + test.getRecall() + " " + test.getFmeasure());
+
+				}
+			}
+			
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 	
 		

@@ -69,7 +69,7 @@ public class DBpediaEndpoint {
 				
 				QuerySolution soln = res.next();				
 				RDFNode object_type = soln.get("?t");
-				System.out.println(""+object_type);
+				//System.out.println(""+object_type);
 				
 				types.add(object_type.toString());
 				
@@ -189,14 +189,17 @@ public class DBpediaEndpoint {
 		uri_subject = "http://dbpedia.org/resource/Plusnet";
 		uri_subject = "http://dbpedia.org/resource/Virgin";
 		uri_subject = "http://dbpedia.org/resource/Source_(game_engine)";
+		uri_subject = "http://dbpedia.org/resource/Tetris";
+		uri_subject = "http://dbpedia.org/resource/Puzzle_video_game";
+		//uri_subject ="http://dbpedia.org/ontology/genre";
 		
 		DBpediaEndpoint dbe = new DBpediaEndpoint();
 		
 		System.out.println(dbe.createSPARQLQuery_TypesForSubject(uri_subject));
 	
-		//for (Statement st : dbe.getTriplesForSubject(uri_subject)){
-		//	System.out.println(st.toString());
-		//}	
+		for (Statement st : dbe.getTriplesForSubject(uri_subject)){
+			System.out.println(st.toString());
+		}	
 		
 		
 		//dbe.getTypesOfObjectForPredicate("http://dbpedia.org/ontology/industry");

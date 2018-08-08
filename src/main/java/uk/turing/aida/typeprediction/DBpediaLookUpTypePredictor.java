@@ -5,6 +5,7 @@
 package uk.turing.aida.typeprediction;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -66,7 +67,7 @@ public class DBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 	/**
 	 * If the columns storing "entities" are known. Useful for tests
 	 */
-	public Map<Integer, Set<String>> getClassTypesForTable(Table tbl, List<Integer> entity_columns) throws JsonProcessingException, IOException {
+	public Map<Integer, Set<String>> getClassTypesForTable(Table tbl, List<Integer> entity_columns) throws JsonProcessingException, IOException, URISyntaxException {
 		
 		
 		//We check all rows. Expensive for large tables
@@ -81,6 +82,8 @@ public class DBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 		
 		for (int c : entity_columns){
 			
+			//System.out.println(c);
+			
 			map_types.put(c, getClassTypesForColumn(tbl.getColumnValues(c)));
 			
 		}
@@ -90,7 +93,7 @@ public class DBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 	
 
 	@Override
-	public Set<String> getClassTypesForColumn(Column col) throws JsonProcessingException, IOException {
+	public Set<String> getClassTypesForColumn(Column col) throws JsonProcessingException, IOException, URISyntaxException {
 		
 		Set<String> types = new HashSet<String>();
 		
@@ -140,17 +143,19 @@ public class DBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 		
 		//Probably not the best solution but a clean one
 		TreeMap<String, Integer> sortedhitsfortypes = new TreeMap<String, Integer>(new ValueComparator(hitsfortypes));
-		for (String key: sortedhitsfortypes.navigableKeySet()){
-			System.out.println(key + "  " + sortedhitsfortypes.get(key));
-		}
+		sortedhitsfortypes.putAll(hitsfortypes);
+		//for (String key: sortedhitsfortypes.navigableKeySet()){
+		//	System.out.println(key + "  " + sortedhitsfortypes.get(key));
+		//}
 		
 		
 		//TODO Top 5: TOP_K_TYPES
-		int i=0;
-		for (String key: sortedhitsfortypes.navigableKeySet()){
-			while (i<TOP_K_TYPES){
-				types.add(key);
-			}
+		
+		for (String key: sortedhitsfortypes.descendingKeySet()){			
+			//System.out.println(key);
+			types.add(key);
+			if (types.size()>=TOP_K_TYPES)
+				break;
 		}
 		
 		

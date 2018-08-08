@@ -155,7 +155,7 @@ public abstract class ReasonerAccessImpl extends ReasonerAccess {
             //TimeoutException: didn't complete within downloadTimeoutSecs
             //InterruptedException: the executor thread was interrupted
 
-        	System.out.println("Time out classifying with HermiT. Using 'structural' reasoner instead.");
+        	System.err.println("Time out classifying with HermiT. Using 'structural' reasoner instead.");
         	
         	isClassified = false;
         	
@@ -170,7 +170,7 @@ public abstract class ReasonerAccessImpl extends ReasonerAccess {
         
     	}
         catch (Exception e) {
-        	System.out.println("Error classifying ontology with " + reasoner.getReasonerName());// + "\n" + e.getMessage() + "\n" + e.getLocalizedMessage());
+        	System.err.println("Error classifying ontology with " + reasoner.getReasonerName());// + "\n" + e.getMessage() + "\n" + e.getLocalizedMessage());
         	e.printStackTrace();
         }        
     }
@@ -216,7 +216,7 @@ public abstract class ReasonerAccessImpl extends ReasonerAccess {
             //interrupts the worker thread if necessary
             future.cancel(true);
             executor.shutdown();
-            System.out.println("Timeout classifying ontology with " + reasoner.getReasonerName());
+            System.err.println("Timeout classifying ontology with " + reasoner.getReasonerName());
             throw new TimeoutException();
     	}
         catch (Exception e) {
@@ -229,7 +229,7 @@ public abstract class ReasonerAccessImpl extends ReasonerAccess {
             executor.shutdown();
         	
             //e.printStackTrace();
-            System.out.println("Error classifying ontology with " + reasoner.getReasonerName());
+            System.err.println("Error classifying ontology with " + reasoner.getReasonerName());
             //e.printStackTrace();
         	throw new Exception();
     	
@@ -265,7 +265,9 @@ public abstract class ReasonerAccessImpl extends ReasonerAccess {
 	        //System.out.println("Expressivity Ontology: " + checker.getDescriptionLogicName());
 			
 			init=Calendar.getInstance().getTimeInMillis();
-			System.out.println("\nClassifying '" + checker.getDescriptionLogicName() + "' Ontology with " + reasonerName + "... ");
+			
+			
+			//System.out.println("\nClassifying '" + checker.getDescriptionLogicName() + "' Ontology with " + reasonerName + "... ");
 	        reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
 	        
 	        
@@ -288,7 +290,7 @@ public abstract class ReasonerAccessImpl extends ReasonerAccess {
 	        
 	        //hermit.realise();
 			fin = Calendar.getInstance().getTimeInMillis();
-			System.out.println("Done, Time (s): " + (float)((double)fin-(double)init)/1000.0 + "\n");
+			//System.out.println("Done, Time (s): " + (float)((double)fin-(double)init)/1000.0 + "\n");
 			
 			isClassified = true;
 		}

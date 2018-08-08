@@ -21,8 +21,14 @@ public class T2DConfiguration extends Configuration{
 	//This file assigns one dbpedia class type to each table (i.e., a type to "primary" key column)
 	public String type_gs_file;
 	
-	//Extended types for nont "primary" key columns
+	//Extended types for non "primary" key columns
 	public String extended_type_gs_file;
+	
+	
+	//partial reference for testsing#
+	public String partial_reference_file;
+	
+	
 	
 	//This folder includes the annotations for some of the columns of each table
 	//Columns are annotated with dbpedia data and object properties
@@ -30,6 +36,7 @@ public class T2DConfiguration extends Configuration{
 	
 	//Folder containing links to dbpedia 
 	public String instance_annotations_folder;
+	
 	
 	
 	//Dataset of tables
@@ -47,7 +54,8 @@ public class T2DConfiguration extends Configuration{
 		//read parameters
 		t2d_path = properties.getProperty("path");
 		type_gs_file = properties.getProperty("gs_types_file");
-		extended_type_gs_file = properties.getProperty("gs_types_extended_file.csv");
+		extended_type_gs_file = properties.getProperty("gs_types_extended_file");
+		partial_reference_file = properties.getProperty("partial_reference_file");
 		columns_annotations_folder = properties.getProperty("columns_ann_folder");			
 		instance_annotations_folder = properties.getProperty("instance_ann_folder");				
 		tables_folder = properties.getProperty("tables_folder");

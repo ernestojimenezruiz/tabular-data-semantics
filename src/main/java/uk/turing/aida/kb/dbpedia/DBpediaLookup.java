@@ -10,11 +10,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.http.client.utils.URIBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -32,12 +36,13 @@ public class DBpediaLookup {
 		
 	//http://lookup.dbpedia.org/api/search/KeywordSearch?MaxHits=3&QueryString=berlin
 	private final String REST_URL = "http://lookup.dbpedia.org/api/search/KeywordSearch?";
+	
 	private final String MaxHits = "MaxHits";
 	private final String QueryString = "QueryString";
 	private final String QueryClass = "QueryClass";
 	
 	private int hits=5;
-	private String query;
+	//private String query;
 	
 	private final ObjectMapper mapper = new ObjectMapper();
 
@@ -50,12 +55,13 @@ public class DBpediaLookup {
 
 	}
 	
-	private HttpURLConnection getConnection(String urlToGet) throws IOException {
+	private HttpURLConnection getConnection(URL urlToGet) throws IOException {
 
 		URL url;
 		HttpURLConnection conn;
 		
-		url = new URL(urlToGet);
+		//url = new URL(urlToGet);
+		url = urlToGet;
 		conn = (HttpURLConnection) url.openConnection();
 
 		conn.setRequestMethod("GET");
@@ -67,15 +73,15 @@ public class DBpediaLookup {
 
 	}
 	
-	public Set<String> getDBpediaEntities(String query) throws JsonProcessingException, IOException{
+	public Set<String> getDBpediaEntities(String query) throws JsonProcessingException, IOException, URISyntaxException{
 		return getDBpediaEntities(query,"", hits);
 	}
 	
-	public Set<String> getDBpediaEntities(String query, int max_hits) throws JsonProcessingException, IOException{
+	public Set<String> getDBpediaEntities(String query, int max_hits) throws JsonProcessingException, IOException, URISyntaxException{
 		return getDBpediaEntities(query,"", max_hits);
 	}
 	
-	public Set<String> getDBpediaEntities(String query, String type) throws JsonProcessingException, IOException{
+	public Set<String> getDBpediaEntities(String query, String type) throws JsonProcessingException, IOException, URISyntaxException{
 		return getDBpediaEntities(query,type, hits);
 	}
 
@@ -86,14 +92,19 @@ public class DBpediaLookup {
 	 * @return
 	 * @throws IOException 
 	 * @throws JsonProcessingException 
+	 * @throws URISyntaxException 
 	 */
-	public Set<String> getDBpediaEntities(String query, String cls_type, int max_hits) throws JsonProcessingException, IOException{
+	public Set<String> getDBpediaEntities(String query, String cls_type, int max_hits) throws JsonProcessingException, IOException, URISyntaxException{
 		
 		
 		Set<String> entities = new HashSet<String>();
 		
-		String urlToGet = REST_URL + QueryClass + "=" + cls_type + "&"	+ MaxHits + "=" + max_hits + "&" + QueryString + "=" + query;
+		//String urlToGet = 
+		//REST_URL + QueryClass + "=" + cls_type + "&"	+ 
+		//MaxHits + "=" + max_hits + "&" + QueryString + "=" + query;			
+		URL urlToGet = buildRequestURL(query, cls_type, max_hits);
 		
+		//System.out.println(urlToGet);
 		
 		
 		for (JsonNode result : jsonToNode(getRequest(urlToGet)).get("results")){
@@ -109,15 +120,15 @@ public class DBpediaLookup {
 
 	
 		
-	public Map<String, Set<String>> getDBpediaEntitiesAndClasses(String query) throws JsonProcessingException, IOException{
+	public Map<String, Set<String>> getDBpediaEntitiesAndClasses(String query) throws JsonProcessingException, IOException, URISyntaxException{
 		return getDBpediaEntitiesAndClasses(query,"", hits);
 	}
 	
-	public Map<String, Set<String>> getDBpediaEntitiesAndClasses(String query, int max_hits) throws JsonProcessingException, IOException{
+	public Map<String, Set<String>> getDBpediaEntitiesAndClasses(String query, int max_hits) throws JsonProcessingException, IOException, URISyntaxException{
 		return getDBpediaEntitiesAndClasses(query,"", max_hits);
 	}
 	
-	public Map<String, Set<String>> getDBpediaEntitiesAndClasses(String query, String type) throws JsonProcessingException, IOException{
+	public Map<String, Set<String>> getDBpediaEntitiesAndClasses(String query, String type) throws JsonProcessingException, IOException, URISyntaxException{
 		return getDBpediaEntitiesAndClasses(query,type, hits);
 	}
 
@@ -129,13 +140,17 @@ public class DBpediaLookup {
 	 * @return
 	 * @throws IOException 
 	 * @throws JsonProcessingException 
+	 * @throws URISyntaxException 
 	 */
-	public Map<String, Set<String>> getDBpediaEntitiesAndClasses(String query, String cls_type, int max_hits) throws JsonProcessingException, IOException{
+	public Map<String, Set<String>> getDBpediaEntitiesAndClasses(String query, String cls_type, int max_hits) throws JsonProcessingException, IOException, URISyntaxException{
 		
 		
 		Map<String, Set<String>> entities2classes = new HashMap<String, Set<String>>();
 		
-		String urlToGet = REST_URL + QueryClass + "=" + cls_type + "&" + MaxHits + "="+ max_hits + "&" + QueryString + "=" + query;
+		//String urlToGet = REST_URL + QueryClass + "=" + cls_type + "&" + MaxHits + "="+ max_hits + "&" + QueryString + "=" + query;
+		URL urlToGet = buildRequestURL(query, cls_type, max_hits);
+		
+		//System.out.println(urlToGet);
 		
 		JsonNode results = jsonToNode(getRequest(urlToGet));
 		
@@ -164,8 +179,18 @@ public class DBpediaLookup {
 	
 	
 	
+	private URL buildRequestURL(String query, String cls_type, int max_hits) throws URISyntaxException, MalformedURLException{
+		URIBuilder ub = new URIBuilder(REST_URL);
+		ub.addParameter(QueryClass, cls_type);
+		ub.addParameter(MaxHits, String.valueOf(max_hits));
+		ub.addParameter(QueryString, query);
+		return ub.build().toURL();
+	}
 	
-	private String getRequest(String urlToGet) throws IOException {
+	
+	
+	
+	private String getRequest(URL urlToGet) throws IOException {
 
 		HttpURLConnection conn;
 		BufferedReader rd;
@@ -223,6 +248,12 @@ public class DBpediaLookup {
 		//word="berlin";
 		word="west%20midlands";
 		word="conglomerates";
+		word="tetris";
+		word="puzzle";
+		word="batman:%20arkham%20city";
+		word="batman: arkham city";
+		word="action-adventure";
+		//word="{action-adventure|brawler|stealth}";
 		
 		String type="";
 		//type= "AdministrativeRegion";
@@ -240,6 +271,9 @@ public class DBpediaLookup {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

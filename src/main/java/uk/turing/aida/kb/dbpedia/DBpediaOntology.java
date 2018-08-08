@@ -139,6 +139,11 @@ public class DBpediaOntology {
 	
 	
 	
+	public Set<OWLClass> getSuperClasses(String cls_uri, boolean direct) throws Exception{
+		
+		return getSuperClasses(dataFactory.getOWLClass(IRI.create(cls_uri)), direct);
+	}
+	
 	/**
 	 * Get entailed class types
 	 * @param oprop
@@ -151,6 +156,27 @@ public class DBpediaOntology {
 			reasoner.classifyOntology(true, true);
 		
 		return reasoner.getReasoner().getSuperClasses(cls, direct).getFlattened();
+		
+	}
+	
+	
+	public Set<OWLClass> getEquivalentClasses(String cls_uri) throws Exception{
+		
+		return getEquivalentClasses(dataFactory.getOWLClass(IRI.create(cls_uri)));
+	}
+	
+	/**
+	 * Get entailed class types
+	 * @param oprop
+	 * @return
+	 * @throws Exception 
+	 */
+	public Set<OWLClass> getEquivalentClasses(OWLClass cls) throws Exception{
+	
+		if (!reasoner.isOntologyClassified())
+			reasoner.classifyOntology(true, true);
+		
+		return reasoner.getReasoner().getEquivalentClasses(cls).getEntities();
 		
 	}
 	
