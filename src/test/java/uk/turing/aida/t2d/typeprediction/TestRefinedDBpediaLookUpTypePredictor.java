@@ -38,10 +38,10 @@ public class TestRefinedDBpediaLookUpTypePredictor extends TestTypePredictor {
 	public static void main (String[] args){
 		
 		
-		//int[] hits = {1,2,3,5};
-		//int[] types = {1,2,3,5};
-		int[] hits = {1};
-		int[] types = {1};
+		int[] hits = {1,2,3,5};
+		int[] types = {1,2,3,5};
+		//int[] hits = {1};
+		//int[] types = {1};
 		
 		
 		try {

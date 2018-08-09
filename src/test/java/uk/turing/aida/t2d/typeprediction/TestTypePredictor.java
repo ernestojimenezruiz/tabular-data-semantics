@@ -56,6 +56,7 @@ public abstract class TestTypePredictor {
 	
 	
 	WriteFile entities_writer;
+	WriteFile prediction_writer;
 		
 	
 	public TestTypePredictor(boolean only_primary_columns) throws Exception{
@@ -73,7 +74,7 @@ public abstract class TestTypePredictor {
 		
 		
 		//if (print_prediction)
-		printPredictionIntoFile();					
+		//printPredictionIntoFile();					
 		
 		computeStandardMeaures();		
 		
@@ -161,7 +162,7 @@ public abstract class TestTypePredictor {
 	
 	protected void printPredictionIntoFile(){
 		
-		WriteFile writer = new WriteFile(config.t2d_path + "output_results/" + getOutputTypesFile());
+		prediction_writer = new WriteFile(config.t2d_path + "output_results/" + getOutputTypesFile());
 		
 		for (String tbl_id : predicted_types.keySet()){
 			for (Integer col_id : predicted_types.get(tbl_id).keySet()){
@@ -172,12 +173,12 @@ public abstract class TestTypePredictor {
 					line+= ",\"" + type.replaceAll(dbpedia_uri, "") + "\""; 
 				}
 				
-				writer.writeLine(line);
+				prediction_writer.writeLine(line);
 				
 			}
 		}
 		
-		writer.closeBuffer();
+		prediction_writer.closeBuffer();
 	}
 	
 
@@ -205,13 +206,38 @@ public abstract class TestTypePredictor {
 	
 	
 	
+	protected void printPredictionIntoFile(boolean resetFile, String table_name, Map<Integer, Set<String>> predicted_types_map){
+		prediction_writer = new WriteFile(config.t2d_path + "output_results/" + getOutputTypesFile(), !resetFile);
+		
+		
+		for (Integer col_id : predicted_types_map.keySet()){
+				
+			String line = "\""+ table_name + "\",\"" + col_id + "\"";
+								
+			for (String type: predicted_types_map.get(col_id)){
+				line+= ",\"" + type.replaceAll(dbpedia_uri, "") + "\""; 
+			}
+				
+			prediction_writer.writeLine(line);
+				
+		}
+		
+		prediction_writer.closeBuffer();
+	}
+	
+	
 	
 	protected void getPrediction(String table_name, List<Integer> column_ids, boolean resetFile) throws Exception{
 		
 		CVSReader table_reader = new CVSReader(config.t2d_path + config.tables_folder + table_name + ".csv");
 		
-		predicted_types.put(table_name, getPrediction(table_reader.getTable(), column_ids));
-				
+		Map<Integer, Set<String>> predicted_types_map = getPrediction(table_reader.getTable(), column_ids);
+		
+		predicted_types.put(table_name, predicted_types_map);
+		
+		//Table by table
+		printPredictionIntoFile(resetFile, table_name, predicted_types_map);
+		
 		//output hit entities + types after perfomed prediction over table
 		printEntityHitsIntoFile(resetFile);
 		
