@@ -70,7 +70,7 @@ public class DBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 	/**
 	 * If the columns storing "entities" are known. Useful for tests
 	 */
-	public Map<Integer, Set<String>> getClassTypesForTable(Table tbl, List<Integer> entity_columns) throws JsonProcessingException, IOException, URISyntaxException {
+	public Map<Integer, Set<String>> getClassTypesForTable(Table tbl, List<Integer> entity_columns) throws Exception {
 		
 		
 		//We check all rows. May be expensive for large tables
@@ -99,7 +99,7 @@ public class DBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 	
 
 	@Override
-	public Set<String> getClassTypesForColumn(Column col) throws JsonProcessingException, IOException, URISyntaxException {
+	public Set<String> getClassTypesForColumn(Column col) throws Exception {
 		
 		MAX_NUM_CALLS = col.getSize();
 		

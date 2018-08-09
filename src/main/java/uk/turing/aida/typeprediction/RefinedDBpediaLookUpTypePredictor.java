@@ -55,15 +55,16 @@ public class RefinedDBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 	 * @param max_types Number of types we return (Top-k) 
 	 */
 	public RefinedDBpediaLookUpTypePredictor(int max_hits, int max_types){
-		
+		MAX_NUM_HITS=max_hits;
+		TOP_K_TYPES=max_types;
 	}
 	
 	
 	/**
 	 * If the columns storing "entities" are known. Useful for tests
-	 * @throws URISyntaxException 
+	 * @throws Exception 
 	 */
-	public Map<Integer, Set<String>> getClassTypesForTable(Table tbl, List<Integer> entity_columns) throws JsonProcessingException, IOException, URISyntaxException {
+	public Map<Integer, Set<String>> getClassTypesForTable(Table tbl, List<Integer> entity_columns) throws Exception {
 		
 		
 		//We check all rows. Expensive for large tables
@@ -91,12 +92,12 @@ public class RefinedDBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 	
 
 	@Override
-	public Set<String> getClassTypesForColumn(Column col) throws JsonProcessingException, IOException, URISyntaxException {
+	public Set<String> getClassTypesForColumn(Column col) throws Exception {
 		
 		Set<String> types = new HashSet<String>();
 		
 		//First round: regular look-up with 5 hits and top-3 types
-		DBpediaLookUpTypePredictor firstRoundPredictor = new DBpediaLookUpTypePredictor(1, 1, "");
+		DBpediaLookUpTypePredictor firstRoundPredictor = new DBpediaLookUpTypePredictor(4, 4, "");
 		
 		Set<String> typesFirstRound = firstRoundPredictor.getClassTypesForColumn(col);
 		

@@ -4,8 +4,10 @@
  *******************************************************************************/
 package uk.turing.aida.kb.dbpedia;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
@@ -32,7 +34,7 @@ public class DBpediaEndpoint {
 	
 	
 	
-	public Set<String> getTypesOfObjectForPredicate(String uri_predicate){
+	public Set<String> getTypesOfObjectForPredicate(String uri_predicate) throws Exception{
 		
 		return getURIsForQuery(
 				craeteSPARQLQuery_TypeObjectsForPredicate(uri_predicate));
@@ -41,7 +43,7 @@ public class DBpediaEndpoint {
 	
 	
 	
-	public Set<String> getTypesForSubject(String uri_resource){
+	public Set<String> getTypesForSubject(String uri_resource) throws Exception{
 		
 		return getURIsForQuery(
 				createSPARQLQuery_TypesForSubject(uri_resource));
@@ -52,7 +54,7 @@ public class DBpediaEndpoint {
 	
 	
 	
-	protected Set<String> getURIsForQuery(String query){
+	protected Set<String> getURIsForQuery(String query) throws Exception{
 		
 		
 		Set<String> types = new HashSet<String>();
@@ -61,23 +63,46 @@ public class DBpediaEndpoint {
 		//Query to retrieve predicates and objects for subject
 		Query q = QueryFactory.create(query);
 
+		//System.out.println(query);
 		
-		QueryExecution qe = QueryExecutionFactory.sparqlService(ENDPOINT, q); 
-		try {
-			ResultSet res = qe.execSelect();
-			while( res.hasNext()) {
+		
+		//In some cases it fails the connection. Try several times
+		boolean success=false;
+		int attempts=0;
+		
+		while(!success && attempts<3){	
+			
+			attempts++;
+		
+			QueryExecution qe = QueryExecutionFactory.sparqlService(ENDPOINT, q); 
+			try {
+				ResultSet res = qe.execSelect();
+				while( res.hasNext()) {
+					
+					QuerySolution soln = res.next();				
+					RDFNode object_type = soln.get("?t");
+					//System.out.println(""+object_type);
+					
+					types.add(object_type.toString());
+					
+				}
 				
-				QuerySolution soln = res.next();				
-				RDFNode object_type = soln.get("?t");
-				//System.out.println(""+object_type);
-				
-				types.add(object_type.toString());
-				
+				success=true;
+			    
+			} 
+			catch (Exception e) {
+				System.out.println("Error accessing " + ENDPOINT + " with  SPARQL:\n" + query + "  Attempt: " + attempts);
+				TimeUnit.SECONDS.sleep(1+attempts); //wait a couple of seconds and try again
 			}
-		    
-		} finally {
-			qe.close();
+			finally {
+				qe.close();
+			}
+			
 		}
+		if (!success)
+			throw new Exception(); 
+		else if (attempts>1)
+			System.out.println("SUCCESS accessing SPARQL\n: " + query + "  Attempt: " + attempts);
 		
 		return types;
 		
@@ -86,6 +111,7 @@ public class DBpediaEndpoint {
 	
 	
 	
+	//TimeUnit.SECONDS.sleep(1);
 	
 	
 	
@@ -93,7 +119,8 @@ public class DBpediaEndpoint {
 	
 	
 	
-	public Set<Statement> getTriplesForSubject(String uri_subject){
+	
+	public Set<Statement> getTriplesForSubject(String uri_subject) throws Exception{
 		
 		Set<Statement> triples = new HashSet<Statement>();
 		
@@ -104,25 +131,50 @@ public class DBpediaEndpoint {
 		
 		
 		//Query to retrieve predicates and objects for subject
-		Query q = QueryFactory.create(createSPARQLQueryForSubject(uri_subject));
+		String query = createSPARQLQueryForSubject(uri_subject);
+		Query q = QueryFactory.create(query);
+		
+		
+		//In some cases it fails the connection. Try several times
+		boolean success=false;
+		int attempts=0;
 
 		
-		QueryExecution qe = QueryExecutionFactory.sparqlService(ENDPOINT, q); 
-		try {
-			ResultSet res = qe.execSelect();
-			while( res.hasNext()) {
+		while(!success && attempts<3){	
+			
+			attempts++;
+		
+			QueryExecution qe = QueryExecutionFactory.sparqlService(ENDPOINT, q); 
+			try {
+				ResultSet res = qe.execSelect();
+				while( res.hasNext()) {
+					
+					QuerySolution soln = res.next();
+					RDFNode predicate = soln.get("?p");
+					RDFNode object = soln.get("?o");
+					//System.out.println(""+predicate + " " + object);
+					
+					triples.add(model.createStatement(subject, model.createProperty(predicate.toString()), object));
+				}
 				
-				QuerySolution soln = res.next();
-				RDFNode predicate = soln.get("?p");
-				RDFNode object = soln.get("?o");
-				//System.out.println(""+predicate + " " + object);
-				
-				triples.add(model.createStatement(subject, model.createProperty(predicate.toString()), object));
+				success=true;
+			    
+			} 
+			catch (Exception e){
+				System.out.println("Error accessing " + ENDPOINT + " with  SPARQL:\n" + query + "  Attempt: " + attempts);
+				TimeUnit.SECONDS.sleep(1+attempts); //wait a couple of seconds and try again			    
+			} 
+			finally {
+				qe.close();
 			}
-		    
-		} finally {
-			qe.close();
 		}
+		
+		if (!success)
+			throw new Exception(); 
+		else if (attempts>1)
+			System.out.println("SUCCESS accessing SPARQL\n: " + query + "  Attempt: " + attempts);
+		
+		
 		
 		return triples;
 		
@@ -199,8 +251,13 @@ public class DBpediaEndpoint {
 		
 		System.out.println(dbe.createSPARQLQuery_TypesForSubject(uri_subject));
 	
-		for (Statement st : dbe.getTriplesForSubject(uri_subject)){
-			System.out.println(st.toString());
+		try {
+			for (Statement st : dbe.getTriplesForSubject(uri_subject)){
+				System.out.println(st.toString());
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}	
 		
 		
