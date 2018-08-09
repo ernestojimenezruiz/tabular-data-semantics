@@ -43,6 +43,8 @@ public class TestRefinedDBpediaLookUpTypePredictor extends TestTypePredictor {
 		//int[] hits = {1};
 		//int[] types = {1};
 		
+		//Change to continue with partial tests
+		int starting_row=0;
 		
 		try {
 			
@@ -51,7 +53,7 @@ public class TestRefinedDBpediaLookUpTypePredictor extends TestTypePredictor {
 				for (int n_types : types){
 			
 					TestRefinedDBpediaLookUpTypePredictor test = new TestRefinedDBpediaLookUpTypePredictor(false, n_hits, n_types);
-					test.performTest();
+					test.performTest(starting_row);
 					System.out.println(n_hits + " " + n_types +" " + test.getPrecision() + " " + test.getRecall() + " " + test.getFmeasure());
 
 				}

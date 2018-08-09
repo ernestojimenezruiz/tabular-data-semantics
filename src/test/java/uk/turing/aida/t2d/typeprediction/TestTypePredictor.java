@@ -69,8 +69,8 @@ public abstract class TestTypePredictor {
 	
 	
 	
-	public void performTest() throws Exception{
-		readGroundTruthaAndComputePrediction();
+	public void performTest(int starting_row) throws Exception{
+		readGroundTruthaAndComputePrediction(starting_row);
 		
 		
 		//if (print_prediction)
@@ -84,7 +84,7 @@ public abstract class TestTypePredictor {
 	
 	
 	
-	protected void readGroundTruthaAndComputePrediction() throws Exception{
+	protected void readGroundTruthaAndComputePrediction(int starting_row) throws Exception{
 		
 		//Read GS which will lead the evaluation
 		CVSReader gs_reader = new CVSReader(config.t2d_path + config.extended_type_gs_file);
@@ -100,9 +100,11 @@ public abstract class TestTypePredictor {
 		List<Integer> column_ids= new ArrayList<Integer>();
 		Map<Integer, Set<String>> reference_map= new HashMap<Integer, Set<String>>();
 		
-		boolean first_table=true;
+		boolean first_table=(starting_row==0);
 		
-		for (int rid=0; rid<gs_reader.getTable().getSize(); rid++){
+		int previous_rid=0;
+		
+		for (int rid=starting_row; rid<gs_reader.getTable().getSize(); rid++){
 			
 			String[] row = gs_reader.getTable().getRow(rid);
 			
@@ -118,7 +120,7 @@ public abstract class TestTypePredictor {
 			if (!table_id.equals(row[0])){
 				
 				
-				System.out.println("Computing predictions for table '" + table_id + "'.");
+				System.out.println("Computing predictions for table '" + table_id + "' row-id: " + previous_rid);
 				
 				//call predictor with previous values
 				getPrediction(table_id, column_ids, first_table);
@@ -128,9 +130,11 @@ public abstract class TestTypePredictor {
 				
 				//Set new table and clear values
 				table_id=row[0];
+				previous_rid = rid; //Starting point of a table (useful to continue computing results)
 				column_ids.clear();
 				reference_map.clear();
-				first_table=false;					
+				first_table=false;		
+				
 			}			
 			
 			//Populate elements for working table
