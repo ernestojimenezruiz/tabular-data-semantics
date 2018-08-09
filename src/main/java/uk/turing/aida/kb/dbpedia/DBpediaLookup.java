@@ -253,6 +253,7 @@ public class DBpediaLookup {
 		word="batman:%20arkham%20city";
 		word="batman: arkham city";
 		word="action-adventure";
+		word="Side-scroller";
 		//word="{action-adventure|brawler|stealth}";
 		
 		String type="";

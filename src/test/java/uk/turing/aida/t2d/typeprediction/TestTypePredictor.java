@@ -44,7 +44,7 @@ public abstract class TestTypePredictor {
 	private double precision = 0.0, recall = 0.0, fmeasure = 0.0;
 	
 	
-	String output_file_name;
+	//String output_file_name;
 	
 	
 	boolean only_primary_columns;
@@ -54,13 +54,15 @@ public abstract class TestTypePredictor {
 	
 	Map<String, Map<Integer, Set<String>>> predicted_types = new HashMap<String, Map<Integer, Set<String>>>();
 	
+	
+	WriteFile entities_writer;
 		
 	
 	public TestTypePredictor(boolean only_primary_columns) throws Exception{
 		
 		this.only_primary_columns=only_primary_columns;
 		
-		config.loadConfiguration();		
+		config.loadConfiguration();
 		
 	}
 	
@@ -97,7 +99,10 @@ public abstract class TestTypePredictor {
 		List<Integer> column_ids= new ArrayList<Integer>();
 		Map<Integer, Set<String>> reference_map= new HashMap<Integer, Set<String>>();
 		
+		boolean first_table=true;
+		
 		for (int rid=0; rid<gs_reader.getTable().getSize(); rid++){
+			
 			String[] row = gs_reader.getTable().getRow(rid);
 			
 			//System.out.println(row[0] + " " + row[1] + "  " +  row[2] + " " + row[3]);
@@ -115,7 +120,7 @@ public abstract class TestTypePredictor {
 				System.out.println("Computing predictions for table '" + table_id + "'.");
 				
 				//call predictor with previous values
-				getPrediction(table_id, column_ids);
+				getPrediction(table_id, column_ids, first_table);
 				//store reference values
 				gold_standard_types.put(table_id, new HashMap<Integer, Set<String>>());
 				gold_standard_types.get(table_id).putAll(reference_map);
@@ -124,10 +129,8 @@ public abstract class TestTypePredictor {
 				table_id=row[0];
 				column_ids.clear();
 				reference_map.clear();
-				
-				
-			}
-			
+				first_table=false;					
+			}			
 			
 			//Populate elements for working table
 			if (!only_primary_columns || Boolean.valueOf(row[2])){
@@ -139,13 +142,17 @@ public abstract class TestTypePredictor {
 					reference_map.get(Integer.valueOf(row[1])).add(dbpedia_uri+row[i]);
 			}			
 			
-		}
+		}//end-for gs file
+		
 		//call predictor for last table values
-		getPrediction(table_id, column_ids);
+		getPrediction(table_id, column_ids, first_table);
 		//store reference types
 		gold_standard_types.put(table_id, new HashMap<Integer, Set<String>>());
 		gold_standard_types.get(table_id).putAll(reference_map);
 		
+		
+		
+		///
 		
 				
 	}
@@ -154,7 +161,7 @@ public abstract class TestTypePredictor {
 	
 	protected void printPredictionIntoFile(){
 		
-		WriteFile writer = new WriteFile(config.t2d_path + "output_results/" + output_file_name + ".csv");
+		WriteFile writer = new WriteFile(config.t2d_path + "output_results/" + getOutputTypesFile());
 		
 		for (String tbl_id : predicted_types.keySet()){
 			for (Integer col_id : predicted_types.get(tbl_id).keySet()){
@@ -175,12 +182,39 @@ public abstract class TestTypePredictor {
 	
 
 	
+	protected void printEntityHitsIntoFile(boolean resetFile){
+				
+		entities_writer = new WriteFile(config.t2d_path + "output_results/" + getOutputEntitiesFile(), !resetFile); //we append to previous table results
+		
+		String line="";
+		
+		for (String entity : type_predictor.getEntityHits().keySet()){
+			
+			line="\""+entity.replace("http://dbpedia.org/resource/", "") + "\"";
+			
+			for (String type : type_predictor.getEntityHits().get(entity)){
+				line+=",\"" + type.replace("http://dbpedia.org/ontology/", "") + "\"";				
+			}
+			
+			entities_writer.writeLine(line);
+			
+		}
+		
+		entities_writer.closeBuffer();
+	}
 	
-	protected void getPrediction(String table_name, List<Integer> column_ids) throws Exception{
+	
+	
+	
+	protected void getPrediction(String table_name, List<Integer> column_ids, boolean resetFile) throws Exception{
 		
 		CVSReader table_reader = new CVSReader(config.t2d_path + config.tables_folder + table_name + ".csv");
 		
 		predicted_types.put(table_name, getPrediction(table_reader.getTable(), column_ids));
+				
+		//output hit entities + types after perfomed prediction over table
+		printEntityHitsIntoFile(resetFile);
+		
 		
 	}
 
@@ -214,7 +248,7 @@ public abstract class TestTypePredictor {
 		
 		
 		//Entailed types
-		WriteFile writer = new WriteFile(config.t2d_path + "output_results/" + output_file_name + "_entailed" + ".csv");
+		WriteFile writer = new WriteFile(config.t2d_path + "output_results/" + getOutputEntailedTypesFile());
 		
 		for (String table_id : gold_standard_types.keySet()){
 			for (Integer col_id : gold_standard_types.get(table_id).keySet()){
@@ -277,8 +311,14 @@ public abstract class TestTypePredictor {
 				intersection.addAll(p_local_types);
 				intersection.retainAll(gt_local_types);
 				
-				local_precision = (double)intersection.size()/(double)p_local_types.size();
-				local_recall = (double)intersection.size()/(double)gt_local_types.size();
+				if (p_local_types.isEmpty()){
+					local_precision=0.0;
+					local_recall=0.0;
+				}
+				else{
+					local_precision = (double)intersection.size()/(double)p_local_types.size();
+					local_recall = (double)intersection.size()/(double)gt_local_types.size();
+				}
 				
 				precision+=local_precision;
 				recall+=local_recall;
@@ -341,5 +381,12 @@ public abstract class TestTypePredictor {
 
 	protected abstract void createPredictor();
 
+	
+	protected abstract String getOutputTypesFile();
+	
+	protected abstract String getOutputEntailedTypesFile();
+	
+	protected abstract String getOutputEntitiesFile();
+	
 	
 }

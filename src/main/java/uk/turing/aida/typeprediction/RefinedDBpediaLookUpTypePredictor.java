@@ -5,6 +5,7 @@
 package uk.turing.aida.typeprediction;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,6 +20,7 @@ import uk.turing.aida.kb.dbpedia.DBpediaEndpoint;
 import uk.turing.aida.kb.dbpedia.DBpediaLookup;
 import uk.turing.aida.tabulardata.Column;
 import uk.turing.aida.tabulardata.Table;
+
 
 /**
  * Predictor based on a 2-round DBPedia look-up queries.
@@ -44,6 +46,9 @@ public class RefinedDBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 	private DBpediaEndpoint dbend = new DBpediaEndpoint();
 	
 	
+	private Map<String, Set<String>> lookup_hits_refined = new HashMap<String, Set<String>>();
+	
+	
 	/**
 	 * 
 	 * @param max_hits Number of entities we keep in each call
@@ -56,8 +61,9 @@ public class RefinedDBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 	
 	/**
 	 * If the columns storing "entities" are known. Useful for tests
+	 * @throws URISyntaxException 
 	 */
-	public Map<Integer, Set<String>> getClassTypesForTable(Table tbl, List<Integer> entity_columns) throws JsonProcessingException, IOException {
+	public Map<Integer, Set<String>> getClassTypesForTable(Table tbl, List<Integer> entity_columns) throws JsonProcessingException, IOException, URISyntaxException {
 		
 		
 		//We check all rows. Expensive for large tables
@@ -70,6 +76,10 @@ public class RefinedDBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 		if (entity_columns.isEmpty())
 			entity_columns.addAll(tbl.getColumnIndexesAsList());
 		
+		
+		//We keep entity hits for table
+		lookup_hits_refined.clear();
+		
 		for (int c : entity_columns){
 			
 			map_types.put(c, getClassTypesForColumn(tbl.getColumnValues(c)));
@@ -81,11 +91,91 @@ public class RefinedDBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 	
 
 	@Override
-	public Set<String> getClassTypesForColumn(Column col) throws JsonProcessingException, IOException {
+	public Set<String> getClassTypesForColumn(Column col) throws JsonProcessingException, IOException, URISyntaxException {
 		
 		Set<String> types = new HashSet<String>();
 		
-		//TBC
+		//First round: regular look-up with 5 hits and top-3 types
+		DBpediaLookUpTypePredictor firstRoundPredictor = new DBpediaLookUpTypePredictor(1, 1, "");
+		
+		Set<String> typesFirstRound = firstRoundPredictor.getClassTypesForColumn(col);
+		
+		System.out.println(typesFirstRound);
+		
+		//Hits for type
+		TreeMap<String, Integer> hitsfortypes = new TreeMap<String, Integer>();
+		
+		
+		for (int cell_id=0; cell_id<MAX_NUM_CALLS; cell_id++){		
+		
+			//Calls using a filter. It should retrieve a more accurate set of entities and types.
+			for (String type_filter : typesFirstRound){
+			
+				//Entity to set of types
+				Map<String, Set<String>> lookup_hits = 
+						dblup.getDBpediaEntitiesAndClasses(
+								col.getElement(cell_id), 
+								type_filter,
+								MAX_NUM_HITS);
+				
+				
+				
+				for (String entity : lookup_hits.keySet()){
+	
+					lookup_hits_refined.put(entity, new HashSet<String>());
+					
+					//Lookup types
+					for (String cls: lookup_hits.get(entity)){
+						
+						if (!filter(cls)){
+							if (!hitsfortypes.containsKey(cls))
+								hitsfortypes.put(cls, 0);
+							
+							hitsfortypes.put(cls, hitsfortypes.get(cls)+1);
+							
+							lookup_hits_refined.get(entity).add(cls);
+							
+						}
+					}
+					
+					//Endpoint types (some times the types provided by look-up are incomplete)
+					for (String cls: dbend.getTypesForSubject(entity)){
+						
+						if (!filter(cls)){
+							if (!hitsfortypes.containsKey(cls))
+								hitsfortypes.put(cls, 0);
+							
+							
+							hitsfortypes.put(cls, hitsfortypes.get(cls)+1);
+							
+							lookup_hits_refined.get(entity).add(cls);
+							
+						}
+					}
+					
+				}//for entities retrieves  by look-up
+				
+			}//for types filter	
+		}//for cells
+		
+		
+		//Probably not the best solution but a clean one
+		TreeMap<String, Integer> sortedhitsfortypes = new TreeMap<String, Integer>(new ValueComparator(hitsfortypes));
+		sortedhitsfortypes.putAll(hitsfortypes);
+		//for (String key: sortedhitsfortypes.navigableKeySet()){
+		//	System.out.println(key + "  " + sortedhitsfortypes.get(key));
+		//}
+		
+		
+		//Top types
+		for (String key: sortedhitsfortypes.descendingKeySet()){			
+			//System.out.println(key);
+			types.add(key);
+			if (types.size()>=TOP_K_TYPES)
+				break;
+		}
+		
+		
 		
 		
 		
@@ -103,6 +193,13 @@ public class RefinedDBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 		return true;
 	}
 	
+	
+	
+	
+	@Override
+	public Map<String, Set<String>> getEntityHits() {
+		return lookup_hits_refined;
+	}
 	
 	
 	

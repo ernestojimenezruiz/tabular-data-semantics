@@ -27,7 +27,6 @@ import uk.turing.aida.tabulardata.Table;
 public abstract class ColumnClassTypePredictor {
 	
 	
-	
 	/**
 	 *  
 	 * @param tbl
@@ -50,6 +49,16 @@ public abstract class ColumnClassTypePredictor {
 	
 	
 	public abstract Set<String> getClassTypesForColumn(Column col) throws Exception;
+	
+	
+	
+	/**
+	 * Return candiate entities and their types
+	 * @return
+	 */
+	public abstract Map<String, Set<String>> getEntityHits();
+
+	
 	
 	
 	

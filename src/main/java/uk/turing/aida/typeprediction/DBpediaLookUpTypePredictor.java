@@ -47,6 +47,9 @@ public class DBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 	private DBpediaEndpoint dbend = new DBpediaEndpoint();
 	
 	
+	private Map<String, Set<String>> lookup_hits_refined = new HashMap<String, Set<String>>();
+	
+	
 	/**
 	 * 
 	 * @param max_hits Number of entities we keep in each call
@@ -70,8 +73,8 @@ public class DBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 	public Map<Integer, Set<String>> getClassTypesForTable(Table tbl, List<Integer> entity_columns) throws JsonProcessingException, IOException, URISyntaxException {
 		
 		
-		//We check all rows. Expensive for large tables
-		MAX_NUM_CALLS = tbl.getSize();
+		//We check all rows. May be expensive for large tables
+		//MAX_NUM_CALLS = tbl.getSize();
 		
 		
 		Map<Integer, Set<String>> map_types = new HashMap<Integer, Set<String>>();
@@ -79,6 +82,9 @@ public class DBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 		//If empty all columns are analyzed
 		if (entity_columns.isEmpty())
 			entity_columns.addAll(tbl.getColumnIndexesAsList());
+		
+		//We keep entity hits for table
+		lookup_hits_refined.clear();
 		
 		for (int c : entity_columns){
 			
@@ -94,6 +100,9 @@ public class DBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 
 	@Override
 	public Set<String> getClassTypesForColumn(Column col) throws JsonProcessingException, IOException, URISyntaxException {
+		
+		MAX_NUM_CALLS = col.getSize();
+		
 		
 		Set<String> types = new HashSet<String>();
 		
@@ -112,6 +121,8 @@ public class DBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 			
 			
 			for (String entity : lookup_hits.keySet()){
+				
+				lookup_hits_refined.put(entity, new HashSet<String>());
 
 				//Lookup types
 				for (String cls: lookup_hits.get(entity)){
@@ -121,6 +132,8 @@ public class DBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 							hitsfortypes.put(cls, 0);
 						
 						hitsfortypes.put(cls, hitsfortypes.get(cls)+1);
+						
+						lookup_hits_refined.get(entity).add(cls);
 					}
 				}
 				
@@ -131,14 +144,16 @@ public class DBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 						if (!hitsfortypes.containsKey(cls))
 							hitsfortypes.put(cls, 0);
 						
-						
 						hitsfortypes.put(cls, hitsfortypes.get(cls)+1);
+						
+						lookup_hits_refined.get(entity).add(cls);
+						
 					}
 				}
 				
-			}
+			}//for:entities retrieved by look up
 			
-		}
+		}//for:cells
 		
 		
 		//Probably not the best solution but a clean one
@@ -149,8 +164,7 @@ public class DBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 		//}
 		
 		
-		//TODO Top 5: TOP_K_TYPES
-		
+		//Top types
 		for (String key: sortedhitsfortypes.descendingKeySet()){			
 			//System.out.println(key);
 			types.add(key);
@@ -161,6 +175,13 @@ public class DBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 		
 		
 		return types;
+	}
+	
+
+	
+	@Override
+	public Map<String, Set<String>> getEntityHits() {
+		return lookup_hits_refined;
 	}
 	
 	
@@ -189,7 +210,10 @@ public class DBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 	        return map.get(a).compareTo(map.get(b));
 	    }
 	}
-	
+
+
+
+
 	
 	
 

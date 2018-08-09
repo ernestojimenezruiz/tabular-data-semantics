@@ -191,7 +191,9 @@ public class DBpediaEndpoint {
 		uri_subject = "http://dbpedia.org/resource/Source_(game_engine)";
 		uri_subject = "http://dbpedia.org/resource/Tetris";
 		uri_subject = "http://dbpedia.org/resource/Puzzle_video_game";
-		//uri_subject ="http://dbpedia.org/ontology/genre";
+		uri_subject = "http://dbpedia.org/resource/Side-scrolling_video_game";
+		//uri_subjecturi_subject ="http://dbpedia.org/ontology/genre";
+		//uri_subject = "http://dbpedia.org/resource/Side_scroller";
 		
 		DBpediaEndpoint dbe = new DBpediaEndpoint();
 		
