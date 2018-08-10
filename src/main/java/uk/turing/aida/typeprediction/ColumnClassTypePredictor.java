@@ -6,9 +6,12 @@ package uk.turing.aida.typeprediction;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -27,13 +30,15 @@ import uk.turing.aida.tabulardata.Table;
 public abstract class ColumnClassTypePredictor {
 	
 	
+	
+	
 	/**
 	 *  
 	 * @param tbl
 	 * @param entity_columns list of columns (if known) for which type should be discovered
 	 * @return Map between column index and a set of KB class type URL
 	 */
-	 public abstract Map<Integer, Set<String>> getClassTypesForTable(Table tbl, List<Integer> entity_columns) throws Exception;	
+	 public abstract Map<Integer, TreeMap<String,Double>> getClassTypesForTable(Table tbl, List<Integer> entity_columns) throws Exception;	
 	
 	
 	/**
@@ -42,27 +47,22 @@ public abstract class ColumnClassTypePredictor {
 	 * @return Map between column index and a set of KB class type URL
 	 * @throws Exception 
 	 */
-	public Map<Integer, Set<String>> getClassTypesForTable(Table tbl) throws Exception{
+	public Map<Integer, TreeMap<String,Double>> getClassTypesForTable(Table tbl) throws Exception{
 		return getClassTypesForTable(tbl, tbl.getColumnIndexesAsList());	
 	}
 	
 	
 	
-	public abstract Set<String> getClassTypesForColumn(Column col) throws Exception;
+	public abstract TreeMap<String,Double> getClassTypesForColumn(Column col) throws Exception;
 	
 	
-	
-	/**
-	 * Return candiate entities and their types
-	 * @return
-	 */
-	public abstract Map<String, Set<String>> getEntityHits();
 
 	
 	
+	public abstract Map<String, Set<String>> getEntityHits();
 	
 	
-		
+	
 	
 	//It will get as input a Table or Column
 	//To implement:

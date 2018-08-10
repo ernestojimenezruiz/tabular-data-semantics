@@ -82,7 +82,7 @@ public class TestRefinedDBpediaLookUpTypePredictor extends TestTypePredictor {
 
 	@Override
 	protected String getOutputEntitiesFile() {
-		return "refined-lookup_entities_hits_"+ max_hits  + ".csv";
+		return "refined-lookup_entities_hits_"+ max_hits + "_" + max_types  + ".csv";
 	}
 	
 		

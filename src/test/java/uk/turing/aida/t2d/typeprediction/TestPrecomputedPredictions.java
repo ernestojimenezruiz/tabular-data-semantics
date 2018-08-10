@@ -4,6 +4,7 @@
  *******************************************************************************/
 package uk.turing.aida.t2d.typeprediction;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,11 +12,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.semanticweb.owlapi.model.OWLClass;
 import uk.turing.aida.kb.dbpedia.DBpediaOntology;
 import uk.turing.aida.tabulardata.reader.CVSReader;
 import uk.turing.aida.tabulardata.t2d.T2DConfiguration;
+import uk.turing.aida.tabulardata.utils.WriteFile;
 
 
 /**
@@ -116,8 +119,8 @@ public class TestPrecomputedPredictions {
 				for (int i=3; i<row.length; i++)
 					reference_map.get(Integer.valueOf(row[1])).add(dbpedia_uri+row[i]);
 			}	
-			if (table_id.equals("29414811_12_251152470253168163"))
-				System.out.println(reference_map);
+			//if (table_id.equals("29414811_12_251152470253168163"))
+			//	System.out.println(reference_map);
 			
 		}		
 		//store reference types
@@ -148,8 +151,10 @@ public class TestPrecomputedPredictions {
 				prediction_map.clear();	
 			}
 			
-					
-			//Populate elements for working table
+			
+			//System.out.println(predicted_types_file);
+			//System.out.println(table_id);
+
 				
 			prediction_map.put(Integer.valueOf(row[1]), new HashSet<String>());
 			
@@ -158,8 +163,8 @@ public class TestPrecomputedPredictions {
 				prediction_map.get(Integer.valueOf(row[1])).add(dbpedia_uri+row[i]);
 
 			
-			if (table_id.equals("29414811_12_251152470253168163"))
-				System.out.println(prediction_map);
+			//if (table_id.equals("29414811_12_251152470253168163"))
+			//	System.out.println(prediction_map);
 			
 		}		
 		//store prediction types
@@ -198,6 +203,12 @@ public class TestPrecomputedPredictions {
 		Set<String> gt_local_types = new HashSet<String>();
 		Set<String> p_local_types = new HashSet<String>();
 		Set<String> intersection = new HashSet<String>();
+		
+		
+		//Entailed types file (replace entialed file if given as input)
+		predicted_types_file = predicted_types_file.replaceAll("_entailed", "");
+		predicted_types_file = predicted_types_file.replaceAll(".csv", "");
+		WriteFile writer = new WriteFile(predicted_types_file+"_entailed.csv");
 		
 		
 		for (String table_id : gold_standard_types.keySet()){
@@ -255,6 +266,15 @@ public class TestPrecomputedPredictions {
 				
 				
 				
+				String line = "\""+ table_id + "\",\"" + col_id + "\"";
+				
+				for (String type: p_local_types){
+					line+= ",\"" + type.replaceAll(dbpedia_uri, "") + "\""; 
+				}
+				
+				writer.writeLine(line);
+				
+				
 				
 				//Get local precision and recall
 				total_columns++;
@@ -286,7 +306,7 @@ public class TestPrecomputedPredictions {
 			
 		}//end table-column iterations
 		
-		
+		writer.closeBuffer();
 		
 		
 		//Global precision and recall as avreage of local values
@@ -333,16 +353,37 @@ public class TestPrecomputedPredictions {
 	 */
 	public static void main(String[] args) {
 		
+		
+		
 		try {
+			
 			T2DConfiguration config = new T2DConfiguration();
-		
 			config.loadConfiguration();
-		
-			TestPrecomputedPredictions test = new TestPrecomputedPredictions(false, config.t2d_path + "output_results/lookup_col_classes_jiaoyan.csv");
 			
-			test.performTest();
+			String path = config.t2d_path + "output_results/";
 			
-			System.out.println(test.getPrecision() + " " + test.getRecall() + " " + test.getFmeasure());
+			File file =  new File(path);
+			
+			
+			TreeSet<String> ordered_files = new TreeSet<String>();
+			for (String file_name : file.list()){
+				ordered_files.add(file_name);
+			}
+			
+			
+			
+			for (String file_name : ordered_files){
+				
+				if (file_name.contains("_col_classes_") && file_name.endsWith(".csv")){
+					//TestPrecomputedPredictions test = new TestPrecomputedPredictions(false, config.t2d_path + "output_results/lookup_col_classes_jiaoyan.csv");
+					//TestPrecomputedPredictions test = new TestPrecomputedPredictions(false, config.t2d_path + "output_results/lookup_col_classes_hits_1_types_2_entailed.csv");
+					TestPrecomputedPredictions test = new TestPrecomputedPredictions(false, path + file_name);
+					
+					test.performTest();
+					
+					System.out.println(file_name + " "+ test.getPrecision() + " " + test.getRecall() + " " + test.getFmeasure());
+				}
+			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

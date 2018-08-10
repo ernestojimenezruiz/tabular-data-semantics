@@ -31,22 +31,8 @@ import uk.turing.aida.tabulardata.Table;
  * Created on 6 Aug 2018
  *
  */
-public class RefinedDBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
+public class RefinedDBpediaLookUpTypePredictor extends DBpediaBasedTypePredictor{
 	
-	//Number of cells for which to call to DBpedia: ALL, or a percentage of cells 10%...90% see variability
-	private int MAX_NUM_CALLS=-1;
-	//Number of hits per call
-	private int MAX_NUM_HITS=5;
-	
-	//Top-k types
-	private int TOP_K_TYPES=5;
-	
-	private DBpediaLookup dblup = new DBpediaLookup();
-	
-	private DBpediaEndpoint dbend = new DBpediaEndpoint();
-	
-	
-	private Map<String, Set<String>> lookup_hits_refined = new HashMap<String, Set<String>>();
 	
 	
 	/**
@@ -56,49 +42,24 @@ public class RefinedDBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 	 */
 	public RefinedDBpediaLookUpTypePredictor(int max_hits, int max_types){
 		MAX_NUM_HITS=max_hits;
-		TOP_K_TYPES=max_types;
 	}
 	
 	
-	/**
-	 * If the columns storing "entities" are known. Useful for tests
-	 * @throws Exception 
-	 */
-	public Map<Integer, Set<String>> getClassTypesForTable(Table tbl, List<Integer> entity_columns) throws Exception {
-		
-		
-		//We check all rows. Expensive for large tables
-		MAX_NUM_CALLS = tbl.getSize();
-		
-		
-		Map<Integer, Set<String>> map_types = new HashMap<Integer, Set<String>>();
-		
-		//If empty all columns are analyzed
-		if (entity_columns.isEmpty())
-			entity_columns.addAll(tbl.getColumnIndexesAsList());
-		
-		
-		//We keep entity hits for table
-		lookup_hits_refined.clear();
-		
-		for (int c : entity_columns){
-			
-			map_types.put(c, getClassTypesForColumn(tbl.getColumnValues(c)));
-			
-		}
-		
-		return map_types;
-	}
+
 	
 
 	@Override
-	public Set<String> getClassTypesForColumn(Column col) throws Exception {
+	public TreeMap<String,Double> getClassTypesForColumn(Column col) throws Exception {
+		
+		
+		MAX_NUM_CALLS = col.getSize();
 		
 		Set<String> types = new HashSet<String>();
 		
 		//First round: regular look-up with 5 hits and top-3 types
 		DBpediaLookUpTypePredictor firstRoundPredictor = new DBpediaLookUpTypePredictor(4, 4, "");
 		
+		//Top-k classes should be filter here
 		Set<String> typesFirstRound = firstRoundPredictor.getClassTypesForColumn(col);
 		
 		System.out.println(typesFirstRound);
@@ -186,36 +147,10 @@ public class RefinedDBpediaLookUpTypePredictor extends ColumnClassTypePredictor{
 	
 	
 	
-	private boolean filter(String cls){
-		//Keep only types from dbpedia
-		if (cls.startsWith("http://dbpedia.org/ontology/"))
-			return false;
-		
-		return true;
-	}
-	
-	
-	
-	
-	@Override
-	public Map<String, Set<String>> getEntityHits() {
-		return lookup_hits_refined;
-	}
-	
-	
-	
-	class ValueComparator implements Comparator<String> {
 
-	    private Map<String, Integer> map;
-
-	    public ValueComparator(Map<String, Integer> map) {
-	        this.map = map;
-	    }
-
-	    public int compare(String a, String b) {
-	        return map.get(a).compareTo(map.get(b));
-	    }
-	}
+	
+	
+	
 	
 	
 	

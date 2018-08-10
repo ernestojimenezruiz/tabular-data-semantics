@@ -181,6 +181,67 @@ public class DBpediaEndpoint {
 	}
 	
 	
+	public Set<Statement> getTriplesForObject(String uri_object) throws Exception{
+		
+		Set<Statement> triples = new HashSet<Statement>();
+		
+		Model model = ModelFactory.createDefaultModel();
+		
+		//subject
+		Resource object = model.createResource(uri_object);
+		
+		
+		//Query to retrieve predicates and objects for subject
+		String query = createSPARQLQueryForObject(uri_object);
+		Query q = QueryFactory.create(query);
+		
+		
+		//In some cases it fails the connection. Try several times
+		boolean success=false;
+		int attempts=0;
+
+		
+		while(!success && attempts<3){	
+			
+			attempts++;
+		
+			QueryExecution qe = QueryExecutionFactory.sparqlService(ENDPOINT, q); 
+			try {
+				ResultSet res = qe.execSelect();
+				while( res.hasNext()) {
+					
+					QuerySolution soln = res.next();
+					RDFNode subject = soln.get("?s");
+					RDFNode predicate = soln.get("?p");					
+					//System.out.println(""+predicate + " " + object);
+					
+					triples.add(model.createStatement(subject.asResource(), model.createProperty(predicate.toString()), object));
+				}
+				
+				success=true;
+			    
+			} 
+			catch (Exception e){
+				System.out.println("Error accessing " + ENDPOINT + " with  SPARQL:\n" + query + "  Attempt: " + attempts);
+				TimeUnit.SECONDS.sleep(1+attempts); //wait a couple of seconds and try again			    
+			} 
+			finally {
+				qe.close();
+			}
+		}
+		
+		if (!success)
+			throw new Exception(); 
+		else if (attempts>1)
+			System.out.println("SUCCESS accessing SPARQL\n: " + query + "  Attempt: " + attempts);
+		
+		
+		
+		return triples;
+		
+	}
+	
+	
 	
 	/**
 	 * To extract a portion of dbpedia relevant to the subject
@@ -192,6 +253,24 @@ public class DBpediaEndpoint {
 		return //"PREFIX foaf: <http://xmlns.com/foaf/0.1/> \n "+
 				"SELECT ?p ?o \n"
 				+ "WHERE { <" + uri_subject + "> ?p ?o . "
+				+ "FILTER (?p != <http://dbpedia.org/ontology/wikiPageWikiLink> "
+				+ "&& ?p != <http://www.w3.org/2000/01/rdf-schema#comment> "
+				+ "&& ?p != <http://dbpedia.org/ontology/abstract>)"
+				+ "}";
+		
+	}
+	
+	
+	/**
+	 * To extract a portion of dbpedia relevant to the object
+	 * @param uri_subject
+	 * @return
+	 */	
+	private String createSPARQLQueryForObject(String uri_object){
+		
+		return //"PREFIX foaf: <http://xmlns.com/foaf/0.1/> \n "+
+				"SELECT ?s ?p \n"
+				+ "WHERE { ?s ?p <" + uri_object + "> . "
 				+ "FILTER (?p != <http://dbpedia.org/ontology/wikiPageWikiLink> "
 				+ "&& ?p != <http://www.w3.org/2000/01/rdf-schema#comment> "
 				+ "&& ?p != <http://dbpedia.org/ontology/abstract>)"
@@ -247,12 +326,22 @@ public class DBpediaEndpoint {
 		//uri_subjecturi_subject ="http://dbpedia.org/ontology/genre";
 		//uri_subject = "http://dbpedia.org/resource/Side_scroller";
 		
+		uri_subject = "http://dbpedia.org/resource/Yemen_Airways";
+		uri_subject = "http://dbpedia.org/resource/Airway_(disambiguation)";
+		uri_subject = "http://dbpedia.org/resource/Airways";
+		//uri_subject = "http://en.wikipedia.org/wiki/Yemen_Airways";
+		//uri_subject = "http://www.wikidata.org/entity/Q4699067";
+		
 		DBpediaEndpoint dbe = new DBpediaEndpoint();
 		
-		System.out.println(dbe.createSPARQLQuery_TypesForSubject(uri_subject));
+		
 	
 		try {
+			
+			System.out.println(dbe.getTypesForSubject(uri_subject));
+			
 			for (Statement st : dbe.getTriplesForSubject(uri_subject)){
+			//for (Statement st : dbe.getTriplesForObject(uri_subject)){
 				System.out.println(st.toString());
 			}
 		} catch (Exception e) {

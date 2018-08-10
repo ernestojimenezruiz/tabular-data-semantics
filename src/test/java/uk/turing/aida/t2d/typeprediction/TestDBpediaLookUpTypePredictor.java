@@ -17,14 +17,12 @@ import uk.turing.aida.typeprediction.DBpediaLookUpTypePredictor;
 public class TestDBpediaLookUpTypePredictor extends TestTypePredictor {
 
 	int max_hits;
-	int max_types;
 	String filter_type;
 	
 	
-	public TestDBpediaLookUpTypePredictor(boolean only_primary_columns, int max_hits, int max_types, String filtertype) throws Exception{
+	public TestDBpediaLookUpTypePredictor(boolean only_primary_columns, int max_hits, String filtertype) throws Exception{
 		super(only_primary_columns);
 		this.max_hits = max_hits;
-		this.max_types = max_types;
 		this.filter_type = filtertype;
 	}
 	
@@ -32,36 +30,30 @@ public class TestDBpediaLookUpTypePredictor extends TestTypePredictor {
 	
 	protected void createPredictor(){
 		
-		type_predictor = new DBpediaLookUpTypePredictor(max_hits, max_types, filter_type);
+		type_predictor = new DBpediaLookUpTypePredictor(max_hits, filter_type);
 	}
 	
 	
 	public static void main (String[] args){
 		
 		
-		int[] hits = {1,2,3,5};
-		int[] types = {1,2,3,5};
-		//int[] hits = {1};
-		//int[] types = {1};
+		//int[] hits = {1,2,3,5,10};
+		int[] hits = {1};
 		
 		
 		//Change to continue with partial tests
 		int starting_row=0;
-		
+		//Computing predictions for table '21585935_0_294037497010176843' row-id: 219
 		
 		try {
 			
 			
 			for (int n_hits : hits){
-				for (int n_types : types){
-			
-					TestDBpediaLookUpTypePredictor test = new TestDBpediaLookUpTypePredictor(false, n_hits, n_types, "");
-					test.performTest(starting_row);
-					System.out.println(n_hits + " " + n_types +" " + test.getPrecision() + " " + test.getRecall() + " " + test.getFmeasure());
+					
+				TestDBpediaLookUpTypePredictor test = new TestDBpediaLookUpTypePredictor(false, n_hits, "");
+				test.performTest(starting_row);
 
-				}
 			}
-			
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -74,14 +66,14 @@ public class TestDBpediaLookUpTypePredictor extends TestTypePredictor {
 
 	@Override
 	protected String getOutputTypesFile() {
-		return "lookup_col_classes_hits_"+ max_hits + "_types_" + max_types + ".csv";
+		return "lookup_col_classes_hits_"+ max_hits + ".csv";
 	}
 
 
 
 	@Override
 	protected String getOutputEntailedTypesFile() {
-		return "lookup_col_classes_hits_"+ max_hits + "_types_" + max_types + "_entailed" + ".csv";
+		return "lookup_col_classes_hits_"+ max_hits + ".csv";
 	}
 	
 		
