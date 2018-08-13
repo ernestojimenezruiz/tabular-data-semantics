@@ -37,8 +37,8 @@ public class TestDBpediaLookUpTypePredictor extends TestTypePredictor {
 	public static void main (String[] args){
 		
 		
-		//int[] hits = {1,2,3,5,10};
-		int[] hits = {1};
+		int[] hits = {1,2,3,4,5};
+		//int[] hits = {1};
 		
 		
 		//Change to continue with partial tests

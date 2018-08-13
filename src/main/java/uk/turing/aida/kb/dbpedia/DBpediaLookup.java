@@ -255,6 +255,8 @@ public class DBpediaLookup {
 		//word="action-adventure";
 		//word="Side-scroller";
 		//word="{action-adventure|brawler|stealth}";
+		word="brooklyn%20museum%20of%20art";
+		word="brooklyn+museum+of+art";
 		
 		String type="";
 		//type= "AdministrativeRegion";

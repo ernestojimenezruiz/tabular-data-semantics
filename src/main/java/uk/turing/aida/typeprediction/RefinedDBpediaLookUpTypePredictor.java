@@ -4,22 +4,12 @@
  *******************************************************************************/
 package uk.turing.aida.typeprediction;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
-import uk.turing.aida.kb.dbpedia.DBpediaEndpoint;
-import uk.turing.aida.kb.dbpedia.DBpediaLookup;
 import uk.turing.aida.tabulardata.Column;
-import uk.turing.aida.tabulardata.Table;
 
 
 /**
@@ -40,7 +30,7 @@ public class RefinedDBpediaLookUpTypePredictor extends DBpediaBasedTypePredictor
 	 * @param max_hits Number of entities we keep in each call
 	 * @param max_types Number of types we return (Top-k) 
 	 */
-	public RefinedDBpediaLookUpTypePredictor(int max_hits, int max_types){
+	public RefinedDBpediaLookUpTypePredictor(int max_hits){
 		MAX_NUM_HITS=max_hits;
 	}
 	
@@ -54,24 +44,52 @@ public class RefinedDBpediaLookUpTypePredictor extends DBpediaBasedTypePredictor
 		
 		MAX_NUM_CALLS = col.getSize();
 		
-		Set<String> types = new HashSet<String>();
 		
-		//First round: regular look-up with 5 hits and top-3 types
-		DBpediaLookUpTypePredictor firstRoundPredictor = new DBpediaLookUpTypePredictor(4, 4, "");
+		///----------------------------------------
+		//First round: regular look-up with 5 hits and top-5 types
+		
+		int HITS_FIRST_ROUND = 5;
+		int MIN_TYPES_FIRST_ROUND = 3; 
+		double MIN_VOTES_FIRST_ROUND = 0.5;
+		
+		DBpediaLookUpTypePredictor firstRoundPredictor = new DBpediaLookUpTypePredictor(HITS_FIRST_ROUND, "");
 		
 		//Top-k classes should be filter here
-		Set<String> typesFirstRound = firstRoundPredictor.getClassTypesForColumn(col);
+		TreeMap<String, Double> typesHitsFirstRound = firstRoundPredictor.getClassTypesForColumn(col);
 		
-		System.out.println(typesFirstRound);
+		Set<String> topTypesFirstRound = new HashSet<String>();
+		
+		for (String key: typesHitsFirstRound.descendingKeySet()){			
+			//System.out.println("\tT1" + key + " " + typesHitsFirstRound.get(key));
+			if (typesHitsFirstRound.get(key)>MIN_VOTES_FIRST_ROUND)
+				topTypesFirstRound.add(key.replaceAll(dbpedia_onto_ns_uri, ""));
+			else //finish as they are ordered
+				break;
+		}
+		
+		//only if empty
+		if (topTypesFirstRound.isEmpty()){ //return 3 types
+			for (String key: typesHitsFirstRound.descendingKeySet()){			
+				//System.out.println("\tT1" + key + " " + typesHitsFirstRound.get(key));
+				topTypesFirstRound.add(key.replaceAll(dbpedia_onto_ns_uri, ""));
+				
+				if (topTypesFirstRound.size()>=MIN_TYPES_FIRST_ROUND)
+					break;
+			}
+		}
+		//end first round look-up
+		
+		//System.out.println(topTypesFirstRound);
 		
 		//Hits for type
-		TreeMap<String, Integer> hitsfortypes = new TreeMap<String, Integer>();
+		TreeMap<String, Double> hitsfortypes = new TreeMap<String, Double>();
+		Set<String> tmp_types = new HashSet<String>();
 		
 		
 		for (int cell_id=0; cell_id<MAX_NUM_CALLS; cell_id++){		
 		
 			//Calls using a filter. It should retrieve a more accurate set of entities and types.
-			for (String type_filter : typesFirstRound){
+			for (String type_filter : topTypesFirstRound){
 			
 				//Entity to set of types
 				Map<String, Set<String>> lookup_hits = 
@@ -90,13 +108,8 @@ public class RefinedDBpediaLookUpTypePredictor extends DBpediaBasedTypePredictor
 					for (String cls: lookup_hits.get(entity)){
 						
 						if (!filter(cls)){
-							if (!hitsfortypes.containsKey(cls))
-								hitsfortypes.put(cls, 0);
-							
-							hitsfortypes.put(cls, hitsfortypes.get(cls)+1);
-							
 							lookup_hits_refined.get(entity).add(cls);
-							
+							tmp_types.add(cls);
 						}
 					}
 					
@@ -104,13 +117,9 @@ public class RefinedDBpediaLookUpTypePredictor extends DBpediaBasedTypePredictor
 					for (String cls: dbend.getTypesForSubject(entity)){
 						
 						if (!filter(cls)){
-							if (!hitsfortypes.containsKey(cls))
-								hitsfortypes.put(cls, 0);
-							
-							
-							hitsfortypes.put(cls, hitsfortypes.get(cls)+1);
 							
 							lookup_hits_refined.get(entity).add(cls);
+							tmp_types.add(cls);
 							
 						}
 					}
@@ -118,30 +127,55 @@ public class RefinedDBpediaLookUpTypePredictor extends DBpediaBasedTypePredictor
 				}//for entities retrieves  by look-up
 				
 			}//for types filter	
+			
+			
+			//Voting per cell!
+			//We add voting here to avoid duplication from different hits and look-up and dbpedia searches
+			for (String cls: tmp_types){
+				
+				if (!hitsfortypes.containsKey(cls))
+					hitsfortypes.put(cls, 0.0);
+				
+				hitsfortypes.put(cls, hitsfortypes.get(cls)+1.0);
+				
+			}
+			
+			tmp_types.clear();
+			
+			
 		}//for cells
 		
 		
+		///Get % of occurrerence of a type instead of number of votes
+		double percentage_votes = 0.0;
+		for (String cls: hitsfortypes.keySet()){
+			percentage_votes = (hitsfortypes.get(cls)/(double)MAX_NUM_CALLS);
+			percentage_votes = (double)Math.round(percentage_votes * 1000d) / 1000d;
+			hitsfortypes.put(cls, percentage_votes);
+		}
+		
+		
+		//System.out.println("TMP types: "+ hitsfortypes);
+		
+		
+		
 		//Probably not the best solution but a clean one
-		TreeMap<String, Integer> sortedhitsfortypes = new TreeMap<String, Integer>(new ValueComparator(hitsfortypes));
+		TreeMap<String, Double> sortedhitsfortypes = new TreeMap<String, Double>(new ValueComparator(hitsfortypes));
 		sortedhitsfortypes.putAll(hitsfortypes);
 		//for (String key: sortedhitsfortypes.navigableKeySet()){
 		//	System.out.println(key + "  " + sortedhitsfortypes.get(key));
 		//}
 		
 		
-		//Top types
-		for (String key: sortedhitsfortypes.descendingKeySet()){			
-			//System.out.println(key);
-			types.add(key);
-			if (types.size()>=TOP_K_TYPES)
-				break;
-		}
+		//@deprecated Top types (not filtered here)
+		//for (String key: sortedhitsfortypes.descendingKeySet()){			
+			//System.out.println("\t" + key + " " + sortedhitsfortypes.get(key));
+		//}
 		
 		
 		
+		return sortedhitsfortypes;
 		
-		
-		return types;
 	}
 	
 	

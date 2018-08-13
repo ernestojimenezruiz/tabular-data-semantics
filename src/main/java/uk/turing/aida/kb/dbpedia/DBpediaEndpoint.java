@@ -92,7 +92,7 @@ public class DBpediaEndpoint {
 			} 
 			catch (Exception e) {
 				System.out.println("Error accessing " + ENDPOINT + " with  SPARQL:\n" + query + "  Attempt: " + attempts);
-				TimeUnit.SECONDS.sleep(1+attempts); //wait a couple of seconds and try again
+				TimeUnit.MINUTES.sleep(1); //wait 1 minute and try again
 			}
 			finally {
 				qe.close();
@@ -162,7 +162,7 @@ public class DBpediaEndpoint {
 			} 
 			catch (Exception e){
 				System.out.println("Error accessing " + ENDPOINT + " with  SPARQL:\n" + query + "  Attempt: " + attempts);
-				TimeUnit.SECONDS.sleep(1+attempts); //wait a couple of seconds and try again			    
+				TimeUnit.MINUTES.sleep(1); //wait 1 minute and try again			    
 			} 
 			finally {
 				qe.close();
@@ -223,7 +223,7 @@ public class DBpediaEndpoint {
 			} 
 			catch (Exception e){
 				System.out.println("Error accessing " + ENDPOINT + " with  SPARQL:\n" + query + "  Attempt: " + attempts);
-				TimeUnit.SECONDS.sleep(1+attempts); //wait a couple of seconds and try again			    
+				TimeUnit.MINUTES.sleep(1); //wait 1 minute and try again			    
 			} 
 			finally {
 				qe.close();

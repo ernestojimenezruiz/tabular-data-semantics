@@ -42,6 +42,8 @@ public abstract class DBpediaBasedTypePredictor extends ColumnClassTypePredictor
 	//Entities and types
 	protected Map<String, Set<String>> lookup_hits_refined = new HashMap<String, Set<String>>();
 	
+	protected String dbpedia_onto_ns_uri = "http://dbpedia.org/ontology/";
+	
 	
 	
 	
@@ -67,7 +69,7 @@ public abstract class DBpediaBasedTypePredictor extends ColumnClassTypePredictor
 		
 		for (int c : entity_columns){
 		
-			System.out.println("Column: "+ c);
+			//System.out.println("Column: "+ c);
 			
 			//System.out.println(c);
 			
@@ -92,7 +94,7 @@ public abstract class DBpediaBasedTypePredictor extends ColumnClassTypePredictor
 	
 	protected boolean filter(String cls){
 		//Keep only types from dbpedia
-		if (cls.startsWith("http://dbpedia.org/ontology/"))
+		if (cls.startsWith(dbpedia_onto_ns_uri))
 			return false;
 		
 		return true;
@@ -110,7 +112,12 @@ public abstract class DBpediaBasedTypePredictor extends ColumnClassTypePredictor
 	    }
 
 	    public int compare(String a, String b) {
-	        return map.get(a).compareTo(map.get(b));
+	        if (map.get(a).doubleValue()>map.get(b).doubleValue())
+	        	return 1;
+	        if (map.get(a).doubleValue()==map.get(b).doubleValue()) //Very important in case of same percentage 
+	        	return b.compareTo(a);
+	        
+	        return -1;
 	    }
 	}
 	

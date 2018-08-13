@@ -79,8 +79,8 @@ public abstract class TestTypePredictor {
 	protected void readGroundTruthaAndComputePrediction(int starting_row) throws Exception{
 		
 		//Read GS which will lead the evaluation
-		//CVSReader gs_reader = new CVSReader(config.t2d_path + config.extended_type_gs_file);
-		CVSReader gs_reader = new CVSReader(config.t2d_path + config.partial_reference_file);
+		CVSReader gs_reader = new CVSReader(config.t2d_path + config.extended_type_gs_file);
+		//CVSReader gs_reader = new CVSReader(config.t2d_path + config.partial_reference_file);
 		
 		if (gs_reader.getTable().isEmpty()){
 			System.err.println("File '" + config.t2d_path + config.extended_type_gs_file + "' is empty.");

@@ -118,6 +118,7 @@ public class DBpediaLookUpTypePredictor extends DBpediaBasedTypePredictor{
 		
 		
 		
+		
 		//Probably not the best solution but a clean one
 		TreeMap<String, Double> sortedhitsfortypes = new TreeMap<String, Double>(new ValueComparator(hitsfortypes));
 		sortedhitsfortypes.putAll(hitsfortypes);
@@ -127,12 +128,12 @@ public class DBpediaLookUpTypePredictor extends DBpediaBasedTypePredictor{
 		
 		
 		//@deprecated Top types (not filtered here)
-		for (String key: sortedhitsfortypes.descendingKeySet())			
-			System.out.println("\t" + key + " " + sortedhitsfortypes.get(key));
+		for (String key: sortedhitsfortypes.descendingKeySet()){
+			//System.out.println("\tT1 " + key + " " + sortedhitsfortypes.get(key));
 		//	types.add(key);
 		//	if (types.size()>=TOP_K_TYPES)
 		//		break;
-		//}
+		}
 		
 		
 		
