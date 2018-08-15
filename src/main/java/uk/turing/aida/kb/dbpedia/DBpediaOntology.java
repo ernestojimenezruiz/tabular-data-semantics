@@ -47,6 +47,8 @@ public class DBpediaOntology {
 	
 	protected ReasonerAccessImpl reasoner;
 	
+	public static String dbpedia_uri_namespace = "http://dbpedia.org/ontology/";
+	
 	
 	DBpediaConfiguration dbp_config = new DBpediaConfiguration();
 	
@@ -267,7 +269,20 @@ public class DBpediaOntology {
 			e.printStackTrace();
 		}
 	}
-	
+
+
+
+
+	/**
+	 * @return the dbpedia_uri_namespace
+	 */
+	public String getDbpediaURINamespace() {
+		return dbpedia_uri_namespace;
+	}
+
+
+
+
 	
 	
 	

@@ -7,11 +7,13 @@ package uk.turing.aida.t2d.typeprediction;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.semanticweb.owlapi.model.OWLClass;
@@ -37,7 +39,12 @@ public class TestPrecomputedPredictions {
 	String dbpedia_uri = "http://dbpedia.org/ontology/";
 	
 	
-	private double precision = 0.0, recall = 0.0, fmeasure = 0.0;
+	private double micro_precision = 0.0, micro_recall = 0.0, micro_fmeasure = 0.0;
+	private double macro_precision = 0.0, macro_recall = 0.0, macro_fmeasure = 0.0;
+	
+	
+	private double tp = 0.0, fp = 0.0, fn = 0.0;
+	
 	
 	
 	boolean only_primary_columns;
@@ -49,14 +56,22 @@ public class TestPrecomputedPredictions {
 	
 	String predicted_types_file; 
 	
+	double MIN_VOTES=0.5;
 	
-	public TestPrecomputedPredictions(boolean only_primary_columns, String predicted_types_file) throws Exception{
+	int MIN_TYPES=3;
+	
+	
+	public TestPrecomputedPredictions(boolean only_primary_columns, String predicted_types_file, double min_votes, int min_types) throws Exception{
 		
 		this.only_primary_columns=only_primary_columns;
 		
 		this.predicted_types_file = predicted_types_file;
 		
+		MIN_VOTES = min_votes;
+		
 		config.loadConfiguration();	
+		
+		MIN_TYPES = min_types;
 		
 	}
 	
@@ -90,7 +105,7 @@ public class TestPrecomputedPredictions {
 		//GROUND TRUTH
 		//We init with first table id
 		String table_id=gs_reader.getTable().getRow(0)[0];
-		List<Integer> cololunn_ids= new ArrayList<Integer>();
+		//List<Integer> cololunn_ids= new ArrayList<Integer>();
 		Map<Integer, Set<String>> reference_map= new HashMap<Integer, Set<String>>();
 		
 		for (int rid=0; rid<gs_reader.getTable().getSize(); rid++){
@@ -105,14 +120,12 @@ public class TestPrecomputedPredictions {
 				
 				//Set new table and clear values
 				table_id=row[0];
-				cololunn_ids.clear();
 				reference_map.clear();				
 			}
 			
 			
 			//Populate elements for working table
 			if (!only_primary_columns || Boolean.valueOf(row[2])){
-				cololunn_ids.add(Integer.valueOf(row[1]));
 				reference_map.put(Integer.valueOf(row[1]), new HashSet<String>());
 				
 				//There may be more than one type
@@ -132,11 +145,61 @@ public class TestPrecomputedPredictions {
 		
 		
 		//PREDICTION
-		table_id=prediction_reader.getTable().getRow(0)[0];		
+		table_id=prediction_reader.getTable().getRow(0)[0];
+		String column_id=prediction_reader.getTable().getRow(0)[1];
 		Map<Integer, Set<String>> prediction_map= new HashMap<Integer, Set<String>>();
+		
+		Map<String, Double> votesForType= new HashMap<String, Double>();
+		
 		
 		for (int rid=0; rid<prediction_reader.getTable().getSize(); rid++){
 			String[] row = prediction_reader.getTable().getRow(rid);
+			
+			
+			//new column row
+			if (!column_id.equals(row[1]) || !table_id.equals(row[0])){ //Check if change of table...
+								
+				//Filter types
+				if (!prediction_map.containsKey(column_id))	
+					prediction_map.put(Integer.valueOf(column_id), new HashSet<String>());
+				
+				
+				
+				for (String type : votesForType.keySet()){
+					
+					if (votesForType.get(type)>=MIN_VOTES){
+						
+						
+						//System.out.println(votesForType.get(type));
+						
+						prediction_map.get(Integer.valueOf(column_id)).add(dbpedia_uri+type);
+						
+					}
+				}
+				
+				
+				//Otherwise keep top-3 (if empty)
+				if (prediction_map.get(Integer.valueOf(column_id)).isEmpty()) {
+					TreeMap<String, Double> sortedTypesFortypes = new TreeMap<String, Double>(new ValueComparator(votesForType));
+					sortedTypesFortypes.putAll(votesForType);
+					
+				
+					for (String type: sortedTypesFortypes.navigableKeySet()){
+						if (prediction_map.get(Integer.valueOf(column_id)).size()>=MIN_TYPES)
+							break;
+						prediction_map.get(Integer.valueOf(column_id)).add(dbpedia_uri+type);
+					}
+					
+					sortedTypesFortypes.clear();
+				}				
+				
+				
+				//Set new column and clear values
+				column_id=row[1];
+				votesForType.clear();	
+				
+			}
+			
 			
 			//new table row
 			if (!table_id.equals(row[0])){
@@ -147,26 +210,27 @@ public class TestPrecomputedPredictions {
 				
 				//Set new table and clear values
 				table_id=row[0];
-				cololunn_ids.clear();
-				prediction_map.clear();	
+				column_id=row[1];
+				prediction_map.clear();
+				votesForType.clear();
 			}
 			
 			
-			//System.out.println(predicted_types_file);
-			//System.out.println(table_id);
-
-				
-			prediction_map.put(Integer.valueOf(row[1]), new HashSet<String>());
 			
-			//There may be more than one type
-			for (int i=2; i<row.length; i++)
-				prediction_map.get(Integer.valueOf(row[1])).add(dbpedia_uri+row[i]);
+			//we keep votes
+			//System.out.println(row[0] + " " + row[1]  + " " + row[2]  + " " + row[3]);
+			
+			votesForType.put(row[2], Double.valueOf(row[3]));
+			//System.out.println(votesForType);
+			
+
 
 			
 			//if (table_id.equals("29414811_12_251152470253168163"))
 			//	System.out.println(prediction_map);
 			
 		}		
+		//TODO LAST TABLE AND COLUMN!
 		//store prediction types
 		predicted_types.put(table_id, new HashMap<Integer, Set<String>>());
 		predicted_types.get(table_id).putAll(prediction_map);
@@ -194,6 +258,9 @@ public class TestPrecomputedPredictions {
 		
 		
 		double local_precision, local_recall = 0.0;
+		
+		double aux_tp=0.0;
+		
 		int total_columns = 0;
 		
 		//1. Extend types with superclasses using DBpedia ontology: filter by URI
@@ -275,11 +342,19 @@ public class TestPrecomputedPredictions {
 				writer.writeLine(line);
 				
 				
+				total_columns++;
 				
 				//Get local precision and recall
-				total_columns++;
 				intersection.addAll(p_local_types);
 				intersection.retainAll(gt_local_types);
+				
+				
+				aux_tp = intersection.size();
+				
+				tp+=aux_tp;  //positive hits
+				fp+=p_local_types.size()-aux_tp; //wrong types
+				fn+=gt_local_types.size()-aux_tp; //missed types
+				
 				
 				if (p_local_types.isEmpty()){
 					local_precision=0.0;
@@ -290,8 +365,8 @@ public class TestPrecomputedPredictions {
 					local_recall = (double)intersection.size()/(double)gt_local_types.size();
 				}
 				
-				precision+=local_precision;
-				recall+=local_recall;
+				micro_precision+=local_precision;
+				micro_recall+=local_recall;
 				
 				
 				//System.out.println(local_precision + " " + local_recall);
@@ -310,12 +385,20 @@ public class TestPrecomputedPredictions {
 		
 		
 		//Global precision and recall as avreage of local values
-		precision = precision/(double)total_columns;		
-		recall = recall/(double)total_columns;
+		micro_precision = micro_precision/(double)total_columns;		
+		micro_recall = micro_recall/(double)total_columns;
 		
 		//harmonic average
-		fmeasure = (2*precision*recall) / (precision + recall);
+		micro_fmeasure = (2*micro_precision*micro_recall) / (micro_precision + micro_recall);
 		
+		
+		
+		//Global precision and recall as avreage of local values
+		macro_precision = (double) tp / (double) (tp+fp); 		
+		macro_recall =  (double) tp / (double) (tp+fn);
+				
+		//harmonic average
+		macro_fmeasure = (2*macro_precision*macro_recall) / (macro_precision + macro_recall);
 				
 		
 
@@ -323,15 +406,28 @@ public class TestPrecomputedPredictions {
 	
 	
 	
-	public double getPrecision(){
-		return precision;
+	public double getMicroPrecision(){
+		return micro_precision;
 	}
 	
-	public double getRecall(){
-		return recall;
+	public double getMicroRecall(){
+		return micro_recall;
 	}
-	public double getFmeasure(){
-		return fmeasure;
+	public double getMicroFmeasure(){
+		return micro_fmeasure;
+	}
+	
+	
+	
+	public double getMacroPrecision(){
+		return macro_precision;
+	}
+	
+	public double getMacroRecall(){
+		return macro_recall;
+	}
+	public double getMacroFmeasure(){
+		return macro_fmeasure;
 	}
 	
 	
@@ -342,6 +438,7 @@ public class TestPrecomputedPredictions {
 	 */
 	private boolean filterType(OWLClass cls) {
 		return cls.isOWLThing() || !cls.getIRI().toString().contains(dbpedia_uri);
+		//return true;
 	}
 	
 	
@@ -374,14 +471,15 @@ public class TestPrecomputedPredictions {
 			
 			for (String file_name : ordered_files){
 				
-				if (file_name.contains("_col_classes_") && file_name.endsWith(".csv")){
+				if (file_name.contains("_col_classes_hits") && file_name.endsWith(".csv") && !file_name.contains("_entailed")){
 					//TestPrecomputedPredictions test = new TestPrecomputedPredictions(false, config.t2d_path + "output_results/lookup_col_classes_jiaoyan.csv");
 					//TestPrecomputedPredictions test = new TestPrecomputedPredictions(false, config.t2d_path + "output_results/lookup_col_classes_hits_1_types_2_entailed.csv");
-					TestPrecomputedPredictions test = new TestPrecomputedPredictions(false, path + file_name);
+					TestPrecomputedPredictions test = new TestPrecomputedPredictions(false, path + file_name, 0.4, 3);
 					
 					test.performTest();
 					
-					System.out.println(file_name + " "+ test.getPrecision() + " " + test.getRecall() + " " + test.getFmeasure());
+					//System.out.println(file_name + " "+ test.getMicroPrecision() + " " + test.getMicroRecall() + " " + test.getMicroFmeasure());
+					System.out.println(file_name + " "+ test.getMacroPrecision() + " " + test.getMacroRecall() + " " + test.getMacroFmeasure());
 				}
 			}
 		} catch (Exception e) {
@@ -390,5 +488,37 @@ public class TestPrecomputedPredictions {
 		}
 
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	protected class ValueComparator implements Comparator<String> {
+
+	    private Map<String, Double> map;
+
+	    public ValueComparator(Map<String, Double> map) {
+	        this.map = map;
+	    }
+
+	    public int compare(String a, String b) {
+	        if (map.get(a).doubleValue()>map.get(b).doubleValue())
+	        	return 1;
+	        if (map.get(a).doubleValue()==map.get(b).doubleValue()) //Very important in case of same percentage 
+	        	return b.compareTo(a);
+	        
+	        return -1;
+	    }
+	}
+	
 
 }

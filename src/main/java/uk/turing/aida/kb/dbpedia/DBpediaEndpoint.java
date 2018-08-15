@@ -52,6 +52,24 @@ public class DBpediaEndpoint {
 	}
 	
 	
+	public Set<String> getAllTypesForSubject(String uri_resource) throws Exception{
+		
+		return getURIsForQuery(
+				createSPARQLQuery_AllTypesForSubject(uri_resource));
+		
+		
+	}
+	
+	
+	public Set<String> getAllSuperClassesForSubject(String uri_resource) throws Exception{
+		
+		return getURIsForQuery(
+				createSPARQLQuery_AllSuperClassesForSubject(uri_resource));
+		
+		
+	}
+	
+	
 	
 	
 	protected Set<String> getURIsForQuery(String query) throws Exception{
@@ -295,6 +313,43 @@ public class DBpediaEndpoint {
 	}
 	
 	
+	private static String createSPARQLQuery_AllTypesForSubject(String uri_subject){
+		
+		return //"PREFIX foaf: <http://xmlns.com/foaf/0.1/> \n "+
+				"SELECT DISTINCT ?t \n"
+				+ "WHERE {\n"
+				+ "{<" + uri_subject + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?dt . "
+				+ "?dt <http://www.w3.org/2000/01/rdf-schema#subClassOf>* ?t "
+				+ "}\n"
+				+ "UNION \n{"
+				+ "<" + uri_subject + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?t . " //direct types
+				+ "}\n"
+				+ "UNION \n{"
+				+ "<" + uri_subject + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?dt . "
+				+ "?dt <http://www.w3.org/2002/07/owl#equivalentClass> ?t "
+				+ "}\n"
+				+ "}";
+		
+	}
+	
+	
+	private static String createSPARQLQuery_AllSuperClassesForSubject(String uri_subject){
+		
+		return //"PREFIX foaf: <http://xmlns.com/foaf/0.1/> \n "+
+				"SELECT DISTINCT ?t \n"
+				+ "WHERE {\n"
+				+ "{<" + uri_subject + "> <http://www.w3.org/2000/01/rdf-schema#subClassOf>* ?t "
+				+ "}\n"
+				+ "UNION \n{"
+				+ "<" + uri_subject + "> <http://www.w3.org/2002/07/owl#equivalentClass> ?t "
+				+ "}\n"
+				+ "}";
+		
+	}
+	
+	
+	
+	
 	
 	
 	private String craeteSPARQLQuery_TypeObjectsForPredicate(String uri_predicate){
@@ -332,18 +387,26 @@ public class DBpediaEndpoint {
 		//uri_subject = "http://en.wikipedia.org/wiki/Yemen_Airways";
 		//uri_subject = "http://www.wikidata.org/entity/Q4699067";
 		
+		uri_subject ="http://dbpedia.org/resource/Puzzle_video_game";
+		uri_subject = "http://dbpedia.org/ontology/MusicGenre";
+		
 		DBpediaEndpoint dbe = new DBpediaEndpoint();
 		
 		
 	
 		try {
 			
-			System.out.println(dbe.getTypesForSubject(uri_subject));
+			//System.out.println(dbe.getTypesForSubject(uri_subject).size() + " " + dbe.getTypesForSubject(uri_subject));
+			//System.out.println(dbe.getAllTypesForSubject(uri_subject).size() + " " + dbe.getAllTypesForSubject(uri_subject));
 			
-			for (Statement st : dbe.getTriplesForSubject(uri_subject)){
+			System.out.println(dbe.getAllSuperClassesForSubject(uri_subject).size() + " " +  dbe.getAllSuperClassesForSubject(uri_subject));
+			
+			//System.out.println(createSPARQLQuery_AllTypesForSubject(uri_subject));
+			
+			//for (Statement st : dbe.getTriplesForSubject(uri_subject)){
 			//for (Statement st : dbe.getTriplesForObject(uri_subject)){
-				System.out.println(st.toString());
-			}
+			//	System.out.println(st.toString());
+		//	}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
