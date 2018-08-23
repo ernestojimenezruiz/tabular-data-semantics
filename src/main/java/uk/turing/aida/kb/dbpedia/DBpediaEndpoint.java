@@ -390,18 +390,20 @@ public class DBpediaEndpoint {
 		uri_subject ="http://dbpedia.org/resource/Puzzle_video_game";
 		uri_subject = "http://dbpedia.org/ontology/MusicGenre";
 		
+		uri_subject ="http://dbpedia.org/resource/Capcom";
+		
 		DBpediaEndpoint dbe = new DBpediaEndpoint();
 		
 		
 	
 		try {
 			
-			//System.out.println(dbe.getTypesForSubject(uri_subject).size() + " " + dbe.getTypesForSubject(uri_subject));
+			System.out.println(dbe.getTypesForSubject(uri_subject).size() + " " + dbe.getTypesForSubject(uri_subject));
 			//System.out.println(dbe.getAllTypesForSubject(uri_subject).size() + " " + dbe.getAllTypesForSubject(uri_subject));
 			
-			System.out.println(dbe.getAllSuperClassesForSubject(uri_subject).size() + " " +  dbe.getAllSuperClassesForSubject(uri_subject));
+			//System.out.println(dbe.getAllSuperClassesForSubject(uri_subject).size() + " " +  dbe.getAllSuperClassesForSubject(uri_subject));
 			
-			//System.out.println(createSPARQLQuery_AllTypesForSubject(uri_subject));
+			//System.out.println(createSPARQLQuery_AllSuperClassesForSubject(uri_subject));
 			
 			//for (Statement st : dbe.getTriplesForSubject(uri_subject)){
 			//for (Statement st : dbe.getTriplesForObject(uri_subject)){

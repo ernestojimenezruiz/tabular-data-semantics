@@ -44,9 +44,9 @@ public class MergeGroundTruths {
 		
 		file1 = config.t2d_path + "colulmn_class_types_revised.csv";
 		
-		file2 = config.t2d_path + "column_gt_extend_fg.csv";
+		file2 = config.t2d_path + "column_gt_fg.csv";
 		
-		fileout = config.t2d_path + "colulmn_class_types_revised_Aug8.csv";
+		fileout = config.t2d_path + "colulmn_class_types_fg_Aug23.csv";
 		
 		Map<String, Map<Integer, ColumnType>> map = new HashMap<String, Map<Integer, ColumnType>>();
 		
@@ -95,7 +95,7 @@ public class MergeGroundTruths {
 			String table = gs_reader1.getTable().getRow(i)[0];
 			Integer column = Integer.valueOf(gs_reader1.getTable().getRow(i)[1]);
 			Boolean is_pc = Boolean.valueOf(gs_reader1.getTable().getRow(i)[2]);
-			String type = gs_reader1.getTable().getRow(i)[3];
+			//String type = gs_reader1.getTable().getRow(i)[3];
 			
 			ColumnType ct;
 			
@@ -110,7 +110,7 @@ public class MergeGroundTruths {
 			
 			ct = map.get(table).get(column);
 			ct.setPrimaryColumn(is_pc);		
-			ct.addType(type.replaceAll("http://dbpedia.org/ontology/", ""));
+			//ct.addType(type.replaceAll("http://dbpedia.org/ontology/", ""));
 			
 			map.get(table).put(column, ct);
 			

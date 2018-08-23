@@ -125,7 +125,7 @@ public class ExtractSuperTypes {
 		String cls_uri = dbpo.getDbpediaURINamespace()+row[2];
 		
 		
-		//We already have the types
+		//If we already have the types
 		if (!type2supertypes_sparql.containsKey(cls_uri)){
 			
 			
