@@ -79,7 +79,7 @@ public class TestPrecomputedPredictions {
 	
 	boolean RESTRICTED_EVAL = true;
 	
-	Map<String, Set<String>> type2supertypes_sparql = new HashMap<String, Set<String>>();
+	static Map<String, Set<String>> type2supertypes_sparql = new HashMap<String, Set<String>>();
 	
 	
 	
@@ -446,14 +446,11 @@ public class TestPrecomputedPredictions {
 				
 				
 				if (RESTRICTED_EVAL){
-					if (!p_local_types.contains(best_hit)){
-						tp=0;
-						tp_t2k=0;
-					}
-					else{
+					if (p_local_types.contains(best_hit)){
 						tp+=aux_tp;  //positive hits
 						tp_t2k++;
 					}
+					//else do nothing (we add '0')
 				}
 				else{
 					tp+=aux_tp;  //positive hits
@@ -501,7 +498,7 @@ public class TestPrecomputedPredictions {
 				gt_local_types.clear();
 				intersection.clear();
 				
-			}
+			}//end column iter
 			
 		}//end table-column iterations
 		
@@ -627,7 +624,7 @@ public class TestPrecomputedPredictions {
 				
 				
 				
-				if (file_name.contains("t2k_col_classes")){
+				//if (file_name.contains("t2k_col_classes")){
 				if (file_name.contains("_col_classes") && file_name.endsWith(".csv") && !file_name.contains("_entailed") && !file_name.contains("_supertypes")){
 					
 					while (threshold<=1.0){
@@ -672,7 +669,7 @@ public class TestPrecomputedPredictions {
 					}
 				}
 				}
-			}
+			//}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

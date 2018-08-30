@@ -185,7 +185,8 @@ public class CreateTypeResultsForT2K {
 		
 		
 		try {
-			new CreateTypeResultsForT2K(path +"instances.csv", path+"t2k_col_classes.csv");
+			//new CreateTypeResultsForT2K(path +"instances_pk.csv", path+"t2k_col_classes_pk.csv");
+			new CreateTypeResultsForT2K(path +"instances_nonpk.csv", path+"t2k_col_classes_nonpk.csv");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
