@@ -151,6 +151,72 @@ public class TestPrecomputedPredictionsComplete {
 		}
 	}
 	
+	
+	
+	
+	/**
+	 * Several types per line
+	 * Format: "29414811_12_251152470253168163","4","Organisation","Company","Agent"
+	 * @throws IOException
+	 */
+	protected void readMultiplePrediction() throws IOException{
+		CVSReader gs_reader = new CVSReader(config.t2d_path + config.extended_type_gs_file);
+		
+		String[] row;
+		String key_name;
+		boolean isPK;
+		boolean include;
+		
+		if (gs_reader.getTable().isEmpty()){
+			System.err.println("File '" + config.t2d_path + config.extended_type_gs_file + "' is empty.");
+			return;
+		}	
+		
+		
+
+		for (int rid=0; rid<gs_reader.getTable().getSize(); rid++){
+			
+			row = gs_reader.getTable().getRow(rid);
+			
+			isPK = table2PKid.containsKey(row[0]) && table2PKid.get(row[0]).equals(row[1]);
+			
+			
+			key_name= row[0] + "-" + row[1];
+			
+			
+			 switch (eval) {
+	            case PK:
+	            	include=isPK;
+	            	break;
+	            case NONPK:
+	            	include=!isPK;
+	            	break;
+	            default://all
+	            	include=true;
+			 }
+			
+			if (include){
+		
+				for (int i=2; i<row.length; i++){
+				
+					if (!prediction_types.containsKey(key_name))
+						prediction_types.put(key_name, new HashSet<String>());
+					
+					prediction_types.get(key_name).add(dbpedia_uri+row[i]);
+					
+				}
+				
+			}
+		}
+	}
+	
+	
+	
+	/**
+	 * One line per types with score
+	 * Format: "86747932_0_7532457067740920052","1","Ship","0.15"
+	 * @throws IOException
+	 */
 	protected void readPrediction() throws IOException{
 		
 		CVSReader prediction_reader = new CVSReader(predicted_types_file);
@@ -214,7 +280,7 @@ public class TestPrecomputedPredictionsComplete {
 			}
 			
 			
-			if (include)
+			if (include && row.length>3)
 				votesForType.put(row[2], Double.valueOf(row[3]));
 			//empty otherwise
 			
@@ -553,13 +619,14 @@ public class TestPrecomputedPredictionsComplete {
 				TestPrecomputedPredictionsComplete  test_restricted;
 				
 				
-				EVAL_LEVEL eval_level = EVAL_LEVEL.ALL;
+				EVAL_LEVEL eval_level = EVAL_LEVEL.PK;
 				
 				
 				
 				//if (file_name.contains("t2k_col_classes_all")){
-				if (file_name.contains("_col_classes") && file_name.endsWith(".csv") && !file_name.contains("_entailed") && !file_name.contains("_supertypes") && !file_name.contains("_jiaoyan")){
-					
+				//if (file_name.contains("_col_classes") && file_name.endsWith(".csv") && !file_name.contains("_entailed") && !file_name.contains("_supertypes") && !file_name.contains("_jiaoyan")){
+				if (file_name.contains("p_lookup.csv")){
+				
 					while (threshold<=1.0){
 					
 						//TestPrecomputedPredictions test = new TestPrecomputedPredictions(false, config.t2d_path + "output_results/lookup_col_classes_jiaoyan.csv");
