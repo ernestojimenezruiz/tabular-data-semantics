@@ -2,7 +2,7 @@
  * Copyright 2018 by The Alan Turing Institute
  * 
  *******************************************************************************/
-package uk.turing.aida.t2d.typeprediction;
+package uk.turing.aida.typeprediction;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -42,11 +42,11 @@ public class MergeGroundTruths {
 		config.loadConfiguration();
 		
 		
-		file1 = config.t2d_path + "colulmn_class_types_revised.csv";
+		file1 = config.t2d_path + "colulmn_class_types_fg_Aug23.csv";
 		
-		file2 = config.t2d_path + "column_gt_fg.csv";
+		file2 = config.t2d_path + "column_gt_extend_fg.csv";
 		
-		fileout = config.t2d_path + "colulmn_class_types_fg_Aug23.csv";
+		fileout = config.t2d_path + "colulmn_class_types_extend_fg_Aug23.csv";
 		
 		Map<String, Map<Integer, ColumnType>> map = new HashMap<String, Map<Integer, ColumnType>>();
 		

@@ -2,9 +2,9 @@
  * Copyright 2018 by The Alan Turing Institute
  * 
  *******************************************************************************/
-package uk.turing.aida.t2d.typeprediction;
+package uk.turing.aida.typeprediction;
 
-import uk.turing.aida.typeprediction.RefinedDBpediaLookUpTypePredictor;
+import uk.turing.aida.typeprediction.DBpediaLookUpTypePredictor;
 
 /**
  *
@@ -14,20 +14,23 @@ import uk.turing.aida.typeprediction.RefinedDBpediaLookUpTypePredictor;
  * Created on 6 Aug 2018
  *
  */
-public class TestRefinedDBpediaLookUpTypePredictor extends TestTypePredictor {
+public class TestDBpediaLookUpTypePredictor extends TestTypePredictor {
 
 	int max_hits;
+	String filter_type;
 	
-	public TestRefinedDBpediaLookUpTypePredictor(boolean only_primary_columns, int max_hits) throws Exception{
+	
+	public TestDBpediaLookUpTypePredictor(boolean only_primary_columns, int max_hits, String filtertype) throws Exception{
 		super(only_primary_columns);
 		this.max_hits = max_hits;
+		this.filter_type = filtertype;
 	}
 	
 	
 	
 	protected void createPredictor(){
 		
-		type_predictor = new RefinedDBpediaLookUpTypePredictor(max_hits);
+		type_predictor = new DBpediaLookUpTypePredictor(max_hits, filter_type);
 	}
 	
 	
@@ -36,20 +39,21 @@ public class TestRefinedDBpediaLookUpTypePredictor extends TestTypePredictor {
 		
 		int[] hits = {1,2,3,4,5};
 		//int[] hits = {1};
-
+		
 		
 		//Change to continue with partial tests
 		int starting_row=0;
+		//Computing predictions for table '21585935_0_294037497010176843' row-id: 219
 		
 		try {
 			
 			
 			for (int n_hits : hits){
-				
-				TestRefinedDBpediaLookUpTypePredictor test = new TestRefinedDBpediaLookUpTypePredictor(false, n_hits);
+					
+				TestDBpediaLookUpTypePredictor test = new TestDBpediaLookUpTypePredictor(false, n_hits, "");
 				test.performTest(starting_row);
+
 			}
-			
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -62,22 +66,22 @@ public class TestRefinedDBpediaLookUpTypePredictor extends TestTypePredictor {
 
 	@Override
 	protected String getOutputTypesFile() {
-		return "refined-lookup_col_classes_hits_"+ max_hits + ".csv";
-	}
-	
-	protected String getOutputEntailedTypesFile() {
-		return "refined-lookup_col_classes_hits_"+ max_hits + "_entailed" + ".csv";
+		return "lookup_col_classes_hits_"+ max_hits + ".csv";
 	}
 
 
 
 	@Override
-	protected String getOutputEntitiesFile() {
-		return "refined-lookup_entities_hits_"+ max_hits + ".csv";
+	protected String getOutputEntailedTypesFile() {
+		return "lookup_col_classes_hits_"+ max_hits + ".csv";
 	}
 	
 		
-	
+
+	@Override
+	protected String getOutputEntitiesFile() {
+		return "lookup_entities_hits_"+ max_hits + ".csv";
+	}	
 	
 	
 	

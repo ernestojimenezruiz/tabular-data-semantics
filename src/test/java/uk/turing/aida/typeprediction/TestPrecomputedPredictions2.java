@@ -2,7 +2,7 @@
  * Copyright 2018 by The Alan Turing Institute
  * 
  *******************************************************************************/
-package uk.turing.aida.t2d.typeprediction;
+package uk.turing.aida.typeprediction;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,7 +31,7 @@ import uk.turing.aida.tabulardata.utils.WriteFile;
  * Created on 8 Aug 2018
  *
  */
-public class TestPrecomputedPredictionsComplete {
+public class TestPrecomputedPredictions2 {
 
 	
 	
@@ -43,9 +43,11 @@ public class TestPrecomputedPredictionsComplete {
 	
 	private double micro_precision = 0.0, micro_recall = 0.0, micro_fmeasure = 0.0;
 	private double macro_precision = 0.0, macro_recall = 0.0, macro_fmeasure = 0.0;
+	private double macro_precision_strict = 0.0, macro_recall_strict = 0.0, macro_fmeasure_strict = 0.0;
 	private double t2k_precision = 0.0, t2k_recall = 0.0, t2k_fmeasure = 0.0;
 	private double tp = 0.0, fp = 0.0, fn = 0.0;
 	private double tp_t2k = 0.0, fp_t2k = 0.0, fn_t2k = 0.0;
+	private double tp_strict = 0.0, fp_strict = 0.0, fn_strict = 0.0;
 	
 	DBpediaEndpoint dbe = new DBpediaEndpoint();
 	
@@ -54,13 +56,20 @@ public class TestPrecomputedPredictionsComplete {
 	//Links tables id to the id of the PK (according to GS)
 	Map<String, String> table2PKid = new HashMap<String, String>();
 	
+	//Links table-col to best class hit
+	Map<String, String> besthitmap = new HashMap<String, String>();
+	
+	Set<String> best_hit;
 	
 	public enum EVAL_LEVEL  {PK, NONPK, ALL};
 	EVAL_LEVEL eval;
 	
 	
+	//We extend with endpoint the predicted and ground truth types
+	boolean parent_extension=true;
 	
-	String best_hit="";
+	
+	
 	Map<String, Set<String>> groundTruth_types = new HashMap<String, Set<String>>();
 	Map<String, Set<String>> prediction_types = new HashMap<String, Set<String>>();
 	
@@ -69,14 +78,14 @@ public class TestPrecomputedPredictionsComplete {
 	String predicted_types_file;
 	double MIN_VOTES=0.5;
 	//int MIN_TYPES=3;
-	boolean RESTRICTED_EVAL = true;
+	//boolean RESTRICTED_EVAL = true;
 	
 	
 	static Map<String, Set<String>> type2supertypes_sparql = new HashMap<String, Set<String>>();
 	
 	
 	
-	public TestPrecomputedPredictionsComplete(EVAL_LEVEL eval_level, String predicted_types_file, double min_votes, boolean strict) throws Exception{
+	public TestPrecomputedPredictions2(EVAL_LEVEL eval_level, String predicted_types_file, double min_votes) throws Exception{
 		
 		this.eval=eval_level;
 		
@@ -86,14 +95,18 @@ public class TestPrecomputedPredictionsComplete {
 		
 		config.loadConfiguration();	
 		
-		RESTRICTED_EVAL = strict;
+		//RESTRICTED_EVAL = strict;
 		
 	}
 	
 	
 	public void performTest() throws Exception{
+		
+		readBestHit1();
+		
 		readGroundTruth();
 		readPrediction();
+		//readPrediction2();
 							
 		computeStandardMeaures();		
 		
@@ -101,8 +114,71 @@ public class TestPrecomputedPredictionsComplete {
 	
 	
 	
-	protected void readGroundTruth() throws IOException{
+	
+	
+	protected void readBestHit1() throws IOException{
+		//CVSReader gs_reader = new CVSReader(config.t2d_path + config.extended_type_gs_file);
+		CVSReader gs_reader = new CVSReader(config.t2d_path + config.extended_type_sc_gs_file);
+		
+		String[] row;
+		String key_name;
+
+		if (gs_reader.getTable().isEmpty()){
+			System.err.println("File '" + config.t2d_path + config.extended_type_gs_file + "' is empty.");
+			return;
+		}	
+		
+		
+
+		for (int rid=0; rid<gs_reader.getTable().getSize(); rid++){
+			
+			row = gs_reader.getTable().getRow(rid);
+			
+			key_name= row[0] + "-" + row[1];
+			
+			besthitmap.put(key_name, dbpedia_uri+row[3]);
+				
+		}
+	}
+	
+	
+	
+	protected void readBestHit2() throws IOException{
 		CVSReader gs_reader = new CVSReader(config.t2d_path + config.extended_type_gs_file);
+		
+		String[] row;
+		String key_name;
+		
+		if (gs_reader.getTable().isEmpty()){
+			System.err.println("File '" + config.t2d_path + config.extended_type_gs_file + "' is empty.");
+			return;
+		}	
+		
+		
+
+		for (int rid=0; rid<gs_reader.getTable().getSize(); rid++){
+			
+			row = gs_reader.getTable().getRow(rid);
+			
+			key_name= row[0].replaceAll(" ", "-");
+			
+			besthitmap.put(key_name, row[2]);
+				
+		}
+	}
+	
+	
+	
+	/**
+	 * "86747932_0_7532457067740920052","1","True","Agent","Company","Organisation","Airline"
+	 * or 
+	 * "86747932_0_7532457067740920052","1","True","Airline"
+	 * @throws IOException
+	 */
+	protected void readGroundTruth() throws IOException{
+		//CVSReader gs_reader = new CVSReader(config.t2d_path + config.extended_type_gs_file);
+		CVSReader gs_reader = new CVSReader(config.t2d_path + config.extended_type_sc_gs_file);
+		//CVSReader gs_reader = new CVSReader(config.t2d_path + config.partial_reference_file);
 		
 		String[] row;
 		String key_name;
@@ -142,10 +218,14 @@ public class TestPrecomputedPredictionsComplete {
 			 }
 			
 			if (include){
-				if (!groundTruth_types.containsKey(key_name))
-					groundTruth_types.put(key_name, new HashSet<String>());
-		
-				groundTruth_types.get(key_name).add(dbpedia_uri+row[3]);
+				
+				for (int i=3; i<row.length; i++){
+				
+					if (!groundTruth_types.containsKey(key_name))
+						groundTruth_types.put(key_name, new HashSet<String>());
+			
+					groundTruth_types.get(key_name).add(dbpedia_uri+row[i]);
+				}
 				
 			}
 		}
@@ -160,23 +240,23 @@ public class TestPrecomputedPredictionsComplete {
 	 * @throws IOException
 	 */
 	protected void readMultiplePrediction() throws IOException{
-		CVSReader gs_reader = new CVSReader(config.t2d_path + config.extended_type_gs_file);
+		CVSReader pt_reader = new CVSReader(predicted_types_file);
 		
 		String[] row;
 		String key_name;
 		boolean isPK;
 		boolean include;
 		
-		if (gs_reader.getTable().isEmpty()){
+		if (pt_reader.getTable().isEmpty()){
 			System.err.println("File '" + config.t2d_path + config.extended_type_gs_file + "' is empty.");
 			return;
 		}	
 		
 		
 
-		for (int rid=0; rid<gs_reader.getTable().getSize(); rid++){
+		for (int rid=0; rid<pt_reader.getTable().getSize(); rid++){
 			
-			row = gs_reader.getTable().getRow(rid);
+			row = pt_reader.getTable().getRow(rid);
 			
 			isPK = table2PKid.containsKey(row[0]) && table2PKid.get(row[0]).equals(row[1]);
 			
@@ -215,6 +295,11 @@ public class TestPrecomputedPredictionsComplete {
 	/**
 	 * One line per types with score
 	 * Format: "86747932_0_7532457067740920052","1","Ship","0.15"
+	 * 
+	 * or
+	 * 
+	 * "77694908_0_6083291340991074532 1","Company","0.10"
+	 * 
 	 * @throws IOException
 	 */
 	protected void readPrediction() throws IOException{
@@ -303,6 +388,103 @@ public class TestPrecomputedPredictionsComplete {
 		
 		
 	}
+	
+	
+	
+	/**
+	 * One line per types with score
+	 * "77694908_0_6083291340991074532 1","Company","0.10"
+	 * 
+	 * @throws IOException
+	 */
+	protected void readPrediction2() throws IOException{
+		
+		CVSReader prediction_reader = new CVSReader(predicted_types_file);
+		
+		String[] row;
+		String key_name;
+		boolean isPK;
+		boolean include;
+		
+		if (prediction_reader.getTable().isEmpty()){
+			System.err.println("File '" + predicted_types_file + "' is empty.");
+			return;
+		}		
+		
+		
+		Map<String, Double> votesForType= new HashMap<String, Double>();
+		String previous_key_name = prediction_reader.getTable().getRow(0)[0].replaceAll(" ", "-");
+		
+		for (int rid=0; rid<prediction_reader.getTable().getSize(); rid++){
+			row = prediction_reader.getTable().getRow(rid);
+			
+
+			key_name= row[0].replaceAll(" ", "-");
+			
+			String[] row0_split = row[0].split(" ");
+			isPK = table2PKid.containsKey(row0_split[0]) && table2PKid.get(row0_split[0]).equals(row0_split[1]); 
+			
+			
+			switch (eval) {
+	            case PK:
+	            	include=isPK;
+	            	break;
+	            case NONPK:
+	            	include=!isPK;
+	            	break;
+	            default://all
+	            	include=true;
+			}
+			
+			
+			//change
+			if (!previous_key_name.equals(key_name)){
+				
+				//System.out.println(previous_key_name +  "  " + votesForType.size());
+				
+			
+				for (String type : votesForType.keySet()){ //if not fitting the PK or nonPK requirement it will be empty
+					
+					if (votesForType.get(type)>=MIN_VOTES){
+						
+						if (!prediction_types.containsKey(previous_key_name))
+							prediction_types.put(previous_key_name, new HashSet<String>());
+					
+						prediction_types.get(previous_key_name).add(dbpedia_uri+type);
+						
+					}
+				}
+				
+				
+				previous_key_name = key_name;
+				votesForType.clear();
+				
+			}
+			
+			
+			if (include && row.length>2)
+				votesForType.put(row[1], Double.valueOf(row[2]));
+			//empty otherwise
+			
+		}//end for
+		
+		
+		
+		//Last group table-column set of types
+		for (String type : votesForType.keySet()){ //if not fitting the PK or nonPK requirement it will be empty
+			
+			if (votesForType.get(type)>=MIN_VOTES){
+				
+				if (!prediction_types.containsKey(previous_key_name))
+					prediction_types.put(previous_key_name, new HashSet<String>());
+				
+				prediction_types.get(previous_key_name).add(dbpedia_uri+type);
+				
+			}
+		}
+		
+		
+	}
 		
 	
 	
@@ -344,12 +526,17 @@ public class TestPrecomputedPredictionsComplete {
 		
 		
 		for (String key_id : groundTruth_types.keySet()){
-							
+			
+			
+			//For restricted mode
+			//best_hit = besthitmap.get(key_id);
+			best_hit = groundTruth_types.get(key_id);
+			
 			//Local ground truth types for a given colums
 			for (String gt_local_type : groundTruth_types.get(key_id)){
 					
 				//For restricted mode
-				best_hit = gt_local_type;
+				//best_hit = gt_local_type;
 					
 				gt_local_types.add(gt_local_type);
 				
@@ -366,21 +553,23 @@ public class TestPrecomputedPredictionsComplete {
 					if (!filterType(cls))
 						gt_local_types.add(cls.getIRI().toString());
 				}*/
-				// If we do not have the types yet, query dbpedia endpoint
-				if (!type2supertypes_sparql.containsKey(gt_local_type)){
-					
-					type2supertypes_sparql.put(gt_local_type, new HashSet<String>());
-					
-					
-					for (String cls : dbe.getAllSuperClassesForSubject(gt_local_type)){
-						if (!filterType(cls, gt_local_type))
-							type2supertypes_sparql.get(gt_local_type).add(cls);
-					}
-				}
 				
-				//If not strict evaluation we  extend GT types with super types
-				//if (!STRICT_EVAL)
-				gt_local_types.addAll(type2supertypes_sparql.get(gt_local_type));
+				
+				// If we do not have the types yet, query dbpedia endpoint
+				if (parent_extension){
+					if (!type2supertypes_sparql.containsKey(gt_local_type)){
+						
+						type2supertypes_sparql.put(gt_local_type, new HashSet<String>());
+						
+						
+						for (String cls : dbe.getAllSuperClassesForSubject(gt_local_type)){
+							if (!filterType(cls, gt_local_type))
+								type2supertypes_sparql.get(gt_local_type).add(cls);
+						}
+					}
+					
+					gt_local_types.addAll(type2supertypes_sparql.get(gt_local_type));
+				}
 				
 			}
 				
@@ -405,17 +594,19 @@ public class TestPrecomputedPredictionsComplete {
 							p_local_types.add(cls.getIRI().toString());
 					}*/
 					
-					if (!type2supertypes_sparql.containsKey(p_local_type)){
-						
-						type2supertypes_sparql.put(p_local_type, new HashSet<String>());
-						
-						
-						for (String cls : dbe.getAllSuperClassesForSubject(p_local_type)){
-							if (!filterType(cls, p_local_type))
-								type2supertypes_sparql.get(p_local_type).add(cls);
+					if (parent_extension){
+						if (!type2supertypes_sparql.containsKey(p_local_type)){
+							
+							type2supertypes_sparql.put(p_local_type, new HashSet<String>());
+							
+							
+							for (String cls : dbe.getAllSuperClassesForSubject(p_local_type)){
+								if (!filterType(cls, p_local_type))
+									type2supertypes_sparql.get(p_local_type).add(cls);
+							}
 						}
+						p_local_types.addAll(type2supertypes_sparql.get(p_local_type));
 					}
-					p_local_types.addAll(type2supertypes_sparql.get(p_local_type));
 					
 					
 				}
@@ -447,23 +638,35 @@ public class TestPrecomputedPredictionsComplete {
 			aux_tp = intersection.size();
 			
 			
-			if (RESTRICTED_EVAL){
-				if (p_local_types.contains(best_hit)){
-					tp+=aux_tp;  //positive hits
-					tp_t2k++;
-				}
-				//else do nothing (we add '0')
+			//RESTRICTED_EVAL
+			//System.out.println(best_hit + " " +p_local_types);
+			if (p_local_types.containsAll(groundTruth_types.get(key_id))){
+				tp_strict+=aux_tp;//best_hit.size(); //aux_tp;  //positive hits
+				//tp_t2k++;
+				
+				fp_strict+=p_local_types.size()-aux_tp; //wrong types
+				fn_strict+=gt_local_types.size()-aux_tp; //missed types
+				
 			}
+			//else do nothing (we add '0')
 			else{
-				tp+=aux_tp;  //positive hits
-				if (aux_tp>0)//positive hit
-					tp_t2k++;  //positive hits
+				//tp inclreases by 0
+				fp_strict+=p_local_types.size(); //We assume intersection=0
+				fn_strict+=gt_local_types.size();
 			}
+			///end Strict
 			
 			
 			
+			//TOLERANT
+			tp+=aux_tp;  //positive hits
+			if (aux_tp>0)//positive hit
+				tp_t2k++;  //positive hits
+				
 			fp+=p_local_types.size()-aux_tp; //wrong types
 			fn+=gt_local_types.size()-aux_tp; //missed types
+			
+			
 			
 			//if (intersection.size()>0)//positive hit
 			//	tp_t2k++;  //positive hits
@@ -521,6 +724,14 @@ public class TestPrecomputedPredictionsComplete {
 		macro_fmeasure = (2*macro_precision*macro_recall) / (macro_precision + macro_recall);
 		
 		
+		//STRICT
+		macro_precision_strict = (double) tp_strict / (double) (tp_strict+fp_strict); 		
+		macro_recall_strict =  (double) tp_strict / (double) (tp_strict+fn_strict);
+				
+		//harmonic average
+		macro_fmeasure_strict = (2*macro_precision_strict*macro_recall_strict) / (macro_precision_strict + macro_recall_strict);
+		
+		
 		
 		
 		//Global precision and recall as avreage of local values
@@ -546,6 +757,18 @@ public class TestPrecomputedPredictionsComplete {
 		return micro_fmeasure;
 	}
 	
+	
+	
+	public double getMacroPrecisionStrictMode(){
+		return macro_precision_strict;
+	}
+	
+	public double getMacroRecallStrictMode(){
+		return macro_recall_strict;
+	}
+	public double getMacroFmeasureStrictMode(){
+		return macro_fmeasure_strict;
+	}
 	
 	
 	public double getMacroPrecision(){
@@ -611,29 +834,44 @@ public class TestPrecomputedPredictionsComplete {
 			
 			
 			
+			System.out.println("file_name" + "\t" + "threshold" + "\t" + 
+					"Micro Precision" + "\t" + "Micro Recall" + "\t" + "Micro F-score" + "\t" +
+					"Tolerant Macro Precision" + "\t" + "Tolerant Macro Recall" + "\t" + "Tolerant Macro F-score" + "\t" +
+					//test_tolerant.getT2KPrecision() + "\t" + test_tolerant.getT2KRecall() + "\t" + test_tolerant.getT2KFmeasure() + "\t" +
+					"Strict Macro Precision" + "\t" + "Strict Macro Recall" + "\t" + "Strict Macro F-score"
+					//test_restricted.getT2KPrecision() + "\t" + test_restricted.getT2KRecall() + "\t" + test_restricted.getT2KFmeasure()
+			);
+			
+			
 			for (String file_name : ordered_files){
 			
 				
 				double threshold = 0.0;
-				TestPrecomputedPredictionsComplete  test_tolerant;
-				TestPrecomputedPredictionsComplete  test_restricted;
+				TestPrecomputedPredictions2  test_prediction;
 				
 				
-				EVAL_LEVEL eval_level = EVAL_LEVEL.PK;
+				
+				EVAL_LEVEL eval_level = EVAL_LEVEL.ALL;
+				
+				
 				
 				
 				
 				//if (file_name.contains("t2k_col_classes_all")){
 				//if (file_name.contains("_col_classes") && file_name.endsWith(".csv") && !file_name.contains("_entailed") && !file_name.contains("_supertypes") && !file_name.contains("_jiaoyan")){
-				if (file_name.contains("p_lookup.csv")){
-				
+				//if (file_name.equals("p_lookup.csv")){
+				//if (file_name.contains("partial") && file_name.endsWith(".csv")){
+				//if (file_name.startsWith("p_cnn_1_2_1.00")){
+				if (file_name.endsWith(".csv")){
+					System.out.println(file_name);
+					
 					while (threshold<=1.0){
 					
 						//TestPrecomputedPredictions test = new TestPrecomputedPredictions(false, config.t2d_path + "output_results/lookup_col_classes_jiaoyan.csv");
 						//TestPrecomputedPredictions test = new TestPrecomputedPredictions(false, config.t2d_path + "output_results/lookup_col_classes_hits_1_types_2_entailed.csv");
-						test_tolerant = new TestPrecomputedPredictionsComplete(eval_level, path + file_name, threshold, false); //default: 0.5, 1
+						test_prediction = new TestPrecomputedPredictions2(eval_level, path + file_name, threshold); //default: 0.5, 1
 						
-						test_tolerant.performTest();
+						test_prediction.performTest();
 						
 						//System.out.println(file_name);
 						//System.out.println("\tRestricted mode: false");
@@ -642,9 +880,9 @@ public class TestPrecomputedPredictionsComplete {
 						//System.out.println("\tT2K evaluation: " + test_tolerant.getT2KPrecision() + " " + test_tolerant.getT2KRecall() + " " + test_tolerant.getT2KFmeasure());
 						
 						
-						test_restricted = new TestPrecomputedPredictionsComplete(eval_level, path + file_name, threshold, true); //default: 0.5, 1
+						//test_restricted = new TestPrecomputedPredictionsComplete(eval_level, path + file_name, threshold, true); //default: 0.5, 1
 						
-						test_restricted.performTest();
+						//test_restricted.performTest();
 						
 						//System.out.println(file_name);
 						//System.out.println("\tRestricted mode: true");
@@ -655,15 +893,17 @@ public class TestPrecomputedPredictionsComplete {
 						
 						
 						System.out.println(file_name + "\t" + threshold + "\t" + 
-									"false" + "\t" + 
-									test_tolerant.getMacroPrecision() + "\t" + test_tolerant.getMacroRecall() + "\t" + test_tolerant.getMacroFmeasure() + "\t" +
-									test_tolerant.getT2KPrecision() + "\t" + test_tolerant.getT2KRecall() + "\t" + test_tolerant.getT2KFmeasure() + "\t" +
-									"true" + "\t" + 
-									test_restricted.getMacroPrecision() + "\t" + test_restricted.getMacroRecall() + "\t" + test_restricted.getMacroFmeasure() + "\t" +
-									test_restricted.getT2KPrecision() + "\t" + test_restricted.getT2KRecall() + "\t" + test_restricted.getT2KFmeasure()
+									test_prediction.getMicroPrecision() + "\t" + test_prediction.getMicroRecall() + "\t" + test_prediction.getMicroFmeasure() + "\t" +
+									test_prediction.getMacroPrecision() + "\t" + test_prediction.getMacroRecall() + "\t" + test_prediction.getMacroFmeasure() + "\t" +
+									//test_tolerant.getT2KPrecision() + "\t" + test_tolerant.getT2KRecall() + "\t" + test_tolerant.getT2KFmeasure() + "\t" +
+									test_prediction.getMacroPrecisionStrictMode() + "\t" + test_prediction.getMacroRecallStrictMode() + "\t" + test_prediction.getMacroFmeasureStrictMode()// + "\t" +
+									//test_restricted.getT2KPrecision() + "\t" + test_restricted.getT2KRecall() + "\t" + test_restricted.getT2KFmeasure()
 						);
 						
-						threshold+=0.10;
+						if (threshold >0.39 && threshold < 0.59 )
+							threshold+=0.05;
+						else
+							threshold+=0.10;
 						
 						
 					}
@@ -687,9 +927,20 @@ public class TestPrecomputedPredictionsComplete {
 	
 	
 	
-	
-	
-	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	protected class ValueComparator implements Comparator<String> {
 
 	    private Map<String, Double> map;

@@ -2,7 +2,7 @@
  * Copyright 2018 by The Alan Turing Institute
  * 
  *******************************************************************************/
-package uk.turing.aida.t2d.typeprediction;
+package uk.turing.aida.typeprediction;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,9 +29,10 @@ import uk.turing.aida.tabulardata.utils.WriteFile;
  * Computes Precision and Recall for already computed predictions
  * @author ernesto
  * Created on 8 Aug 2018
+ * @deprecated
  *
  */
-public class TestPrecomputedPredictions {
+public class TestPrecomputedPredictionsDeprecated {
 
 	
 	
@@ -83,7 +84,7 @@ public class TestPrecomputedPredictions {
 	
 	
 	
-	public TestPrecomputedPredictions(boolean only_primary_columns, String predicted_types_file, double min_votes, int min_types, boolean strict) throws Exception{
+	public TestPrecomputedPredictionsDeprecated(boolean only_primary_columns, String predicted_types_file, double min_votes, int min_types, boolean strict) throws Exception{
 		
 		this.only_primary_columns=only_primary_columns;
 		
@@ -617,8 +618,8 @@ public class TestPrecomputedPredictions {
 				
 				double threshold = 0.0;
 				int min_types = 0; //if no types after threshold
-				TestPrecomputedPredictions  test_tolerant;
-				TestPrecomputedPredictions  test_restricted;
+				TestPrecomputedPredictionsDeprecated  test_tolerant;
+				TestPrecomputedPredictionsDeprecated  test_restricted;
 				
 				
 				
@@ -631,7 +632,7 @@ public class TestPrecomputedPredictions {
 					
 						//TestPrecomputedPredictions test = new TestPrecomputedPredictions(false, config.t2d_path + "output_results/lookup_col_classes_jiaoyan.csv");
 						//TestPrecomputedPredictions test = new TestPrecomputedPredictions(false, config.t2d_path + "output_results/lookup_col_classes_hits_1_types_2_entailed.csv");
-						test_tolerant = new TestPrecomputedPredictions(true, path + file_name, threshold, min_types, false); //default: 0.5, 1
+						test_tolerant = new TestPrecomputedPredictionsDeprecated(true, path + file_name, threshold, min_types, false); //default: 0.5, 1
 						
 						test_tolerant.performTest();
 						
@@ -642,7 +643,7 @@ public class TestPrecomputedPredictions {
 						//System.out.println("\tT2K evaluation: " + test_tolerant.getT2KPrecision() + " " + test_tolerant.getT2KRecall() + " " + test_tolerant.getT2KFmeasure());
 						
 						
-						test_restricted = new TestPrecomputedPredictions(true, path + file_name, threshold, min_types, true); //default: 0.5, 1
+						test_restricted = new TestPrecomputedPredictionsDeprecated(true, path + file_name, threshold, min_types, true); //default: 0.5, 1
 						
 						test_restricted.performTest();
 						

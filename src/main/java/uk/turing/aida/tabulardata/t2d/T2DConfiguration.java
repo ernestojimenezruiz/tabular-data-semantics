@@ -24,8 +24,11 @@ public class T2DConfiguration extends Configuration{
 	//Extended types for non "primary" key columns
 	public String extended_type_gs_file;
 	
+	//with superclasses
+	public String extended_type_sc_gs_file;
 	
-	//partial reference for testsing#
+	
+	//partial reference for testing
 	public String partial_reference_file;
 	
 	
@@ -55,6 +58,7 @@ public class T2DConfiguration extends Configuration{
 		t2d_path = properties.getProperty("path");
 		type_gs_file = properties.getProperty("gs_types_file");
 		extended_type_gs_file = properties.getProperty("gs_types_extended_file");
+		extended_type_sc_gs_file = properties.getProperty("gs_types_extended_file_sc");
 		partial_reference_file = properties.getProperty("partial_reference_file");
 		columns_annotations_folder = properties.getProperty("columns_ann_folder");			
 		instance_annotations_folder = properties.getProperty("instance_ann_folder");				

@@ -2,7 +2,7 @@
  * Copyright 2018 by The Alan Turing Institute
  * 
  *******************************************************************************/
-package uk.turing.aida.t2d.typeprediction;
+package uk.turing.aida.typeprediction;
 
 import java.io.File;
 import java.util.HashMap;
