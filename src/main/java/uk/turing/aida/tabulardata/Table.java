@@ -91,7 +91,7 @@ public class Table {
 	}
 	
 	
-	//Assuming all rows has the same size.... 
+	//Assuming all rows has the same size interms of columns....
 	public int getNumberOfColumns(){
 		if (table_data.isEmpty())
 			return 0;
@@ -118,7 +118,7 @@ public class Table {
 	}
 	
 	
-	public Column getColumnValues(int cid){
+	public Column getColumn(int cid){
 		
 		Column c =  new Column();		
 		
@@ -127,6 +127,18 @@ public class Table {
 		}
 		
 		return c;
+	}
+	
+	
+	public List<String> getColumnValues(int cid){
+		
+		List<String> values =  new ArrayList<String>();		
+		
+		for (String[] row : table_data){
+			values.add(row[cid]);
+		}
+		
+		return values;
 	}
 	
 	

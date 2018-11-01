@@ -73,7 +73,7 @@ public abstract class DBpediaBasedTypePredictor extends ColumnClassTypePredictor
 			
 			//System.out.println(c);
 			
-			map_types.put(c, getClassTypesForColumn(tbl.getColumnValues(c)));
+			map_types.put(c, getClassTypesForColumn(tbl.getColumn(c)));
 			
 		}
 		
