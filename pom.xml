@@ -45,7 +45,73 @@
   	<groupId>net.sourceforge.owlapi</groupId>
     <artifactId>owlapi-distribution</artifactId>
     <version>4.1.3</version>
-  </dependency>  
+  </dependency> 
+  
+  <!-- https://mvnrepository.com/artifact/org.wikidata.wdtk/wdtk-parent -->
+	<dependency>
+	    <groupId>org.wikidata.wdtk</groupId>
+	    <artifactId>wdtk-parent</artifactId>
+	    <version>0.9.0</version>
+	    <type>pom</type>
+	</dependency>
+
+
+	<dependency>
+	    <groupId>org.wikidata.wdtk</groupId>
+	    <artifactId>wdtk-datamodel</artifactId>
+	    <version>0.9.0</version>	    
+	</dependency>
+  
+
+	<dependency>
+	    <groupId>org.wikidata.wdtk</groupId>
+	    <artifactId>wdtk-dumpfiles</artifactId>
+	    <version>0.9.0</version>	    
+	</dependency>
+
+
+	<dependency>
+	    <groupId>org.wikidata.wdtk</groupId>
+	    <artifactId>wdtk-storage</artifactId>
+	    <version>0.9.0</version>	    
+	</dependency>
+
+
+	<dependency>
+	    <groupId>org.wikidata.wdtk</groupId>
+	    <artifactId>wdtk-wikibaseapi</artifactId>
+	    <version>0.9.0</version>	    
+	</dependency>
+
+
+	<dependency>
+	    <groupId>org.wikidata.wdtk</groupId>
+	    <artifactId>wdtk-util</artifactId>
+	    <version>0.9.0</version>	    
+	</dependency>
+
+
+	<dependency>
+	    <groupId>org.wikidata.wdtk</groupId>
+	    <artifactId>wdtk-testing</artifactId>
+	    <version>0.9.0</version>	    
+	</dependency>
+
+
+
+	<dependency>
+	    <groupId>org.wikidata.wdtk</groupId>
+	    <artifactId>wdtk-rdf</artifactId>
+	    <version>0.9.0</version>	    
+	</dependency>
+
+
+	<dependency>
+	    <groupId>org.wikidata.wdtk</groupId>
+	    <artifactId>wdtk-client</artifactId>
+	    <version>0.9.0</version>	    
+	</dependency>
+  
 
   <!-- Version 4 has some incompatibilities with other libraries -->
   <dependency>
@@ -60,7 +126,32 @@
     <version>2.0.1</version>
     <type>pom</type>
  </dependency>
+ 
+ 
+ <dependency> 
+	<groupId>org.slf4j</groupId>
+	<artifactId>slf4j-log4j12</artifactId>
+	<version>1.7.6</version>
+ </dependency>
 
    
  </dependencies>
+ 
+ 
+ <build>
+    <sourceDirectory>src</sourceDirectory>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+ 
+ 
+ 
 </project>
