@@ -73,8 +73,8 @@ public class DBpediaEndpoint extends SPARQLEndpointService {
 	protected String createSPARQLQuery_TypesForSubject(String uri_subject){
 		
 		return //"PREFIX foaf: <http://xmlns.com/foaf/0.1/> \n "+
-				"SELECT DISTINCT ?t \n"
-				+ "WHERE { <" + uri_subject + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?t . "
+				"SELECT DISTINCT ?uri \n"
+				+ "WHERE { <" + uri_subject + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?uri . "
 				+ "}";
 		
 	}
@@ -86,14 +86,14 @@ public class DBpediaEndpoint extends SPARQLEndpointService {
 				"SELECT DISTINCT ?t \n"
 				+ "WHERE {\n"
 				+ "{<" + uri_subject + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?dt . "
-				+ "?dt <http://www.w3.org/2000/01/rdf-schema#subClassOf>* ?t "
+				+ "?dt <http://www.w3.org/2000/01/rdf-schema#subClassOf>* ?uri "
 				+ "}\n"
 				+ "UNION \n{"
-				+ "<" + uri_subject + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?t . " //direct types
+				+ "<" + uri_subject + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?uri . " //direct types
 				+ "}\n"
 				+ "UNION \n{"
 				+ "<" + uri_subject + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?dt . "
-				+ "?dt <http://www.w3.org/2002/07/owl#equivalentClass> ?t "
+				+ "?dt <http://www.w3.org/2002/07/owl#equivalentClass> ?uri "
 				+ "}\n"
 				+ "}";
 		
@@ -103,12 +103,12 @@ public class DBpediaEndpoint extends SPARQLEndpointService {
 	protected String createSPARQLQuery_AllSuperClassesForSubject(String uri_subject){
 		
 		return //"PREFIX foaf: <http://xmlns.com/foaf/0.1/> \n "+
-				"SELECT DISTINCT ?t \n"
+				"SELECT DISTINCT ?uri \n"
 				+ "WHERE {\n"
-				+ "{<" + uri_subject + "> <http://www.w3.org/2000/01/rdf-schema#subClassOf>* ?t "
+				+ "{<" + uri_subject + "> <http://www.w3.org/2000/01/rdf-schema#subClassOf>* ?uri "
 				+ "}\n"
 				+ "UNION \n{"
-				+ "<" + uri_subject + "> <http://www.w3.org/2002/07/owl#equivalentClass> ?t "
+				+ "<" + uri_subject + "> <http://www.w3.org/2002/07/owl#equivalentClass> ?uri "
 				+ "}\n"
 				+ "}";
 		
@@ -122,9 +122,9 @@ public class DBpediaEndpoint extends SPARQLEndpointService {
 	protected String craeteSPARQLQuery_TypeObjectsForPredicate(String uri_predicate){
 		
 		return //"PREFIX foaf: <http://xmlns.com/foaf/0.1/> \n "+
-				"SELECT DISTINCT ?t \n"
+				"SELECT DISTINCT ?uri \n"
 				+ "WHERE { ?s <" + uri_predicate + "> ?o . "
-				+ "?o <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?t ."
+				+ "?o <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?uri ."
 				+ "}";
 		
 	}

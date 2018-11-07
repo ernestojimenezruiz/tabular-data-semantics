@@ -11,6 +11,7 @@ import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
+import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.RDFNode;
@@ -27,7 +28,7 @@ public abstract class SPARQLEndpointService {
 	protected abstract String createSPARQLQueryForSubject(String uri_subject);
 	
 	//Query to retrieve predicates and subjects for object
-	protected abstract String createSPARQLQueryForObject(String uri_subject);
+	protected abstract String createSPARQLQueryForObject(String uri_object);
 	
 	
 	protected abstract String craeteSPARQLQuery_TypeObjectsForPredicate(String uri_predicate);
@@ -49,8 +50,8 @@ public abstract class SPARQLEndpointService {
 	protected String createSPARQLQuery_LabelForSubject(String uri_subject){
 		
 		return //"PREFIX foaf: <http://xmlns.com/foaf/0.1/> \n "+
-				"SELECT DISTINCT ?l \n"
-				+ "WHERE { <" + uri_subject + "> <http://www.w3.org/2000/01/rdf-schema#label> ?l . "
+				"SELECT DISTINCT ?value \n"
+				+ "WHERE { <" + uri_subject + "> <http://www.w3.org/2000/01/rdf-schema#label> ?value . "
 				+ "}";
 		
 	}
@@ -58,7 +59,7 @@ public abstract class SPARQLEndpointService {
 	
 	public Set<String> getTypesOfObjectForPredicate(String uri_predicate) throws Exception{
 		
-		return getValuesForQuery(
+		return getURIsForQuery(
 				craeteSPARQLQuery_TypeObjectsForPredicate(uri_predicate));
 		
 	}
@@ -79,7 +80,7 @@ public abstract class SPARQLEndpointService {
 	
 	public Set<String> getTypesForSubject(String uri_resource) throws Exception{
 		
-		return getValuesForQuery(
+		return getURIsForQuery(
 				createSPARQLQuery_TypesForSubject(uri_resource));
 		
 		
@@ -89,7 +90,7 @@ public abstract class SPARQLEndpointService {
 	
 	public Set<String> getAllTypesForSubject(String uri_resource) throws Exception{
 		
-		return getValuesForQuery(
+		return getURIsForQuery(
 				createSPARQLQuery_AllTypesForSubject(uri_resource));
 		
 		
@@ -98,13 +99,75 @@ public abstract class SPARQLEndpointService {
 	
 	public Set<String> getAllSuperClassesForSubject(String uri_resource) throws Exception{
 		
-		return getValuesForQuery(
+		return getURIsForQuery(
 				createSPARQLQuery_AllSuperClassesForSubject(uri_resource));
 		
 		
 	}
 	
 	
+	
+	
+	
+	public Set<String> getURIsForQuery(String query) throws Exception{
+		
+		
+		Set<String> types = new HashSet<String>();
+		
+		
+		//Query to retrieve predicates and objects for subject
+		Query q = QueryFactory.create(query);
+
+		//System.out.println(query);
+		
+		
+		//In some cases it fails the connection. Try several times
+		boolean success=false;
+		int attempts=0;
+		
+		while(!success && attempts<3){	
+			
+			attempts++;
+		
+			QueryExecution qe = QueryExecutionFactory.sparqlService(getENDPOINT(), q); 
+			try {
+				ResultSet res = qe.execSelect();
+				
+				while( res.hasNext()) {
+					
+					QuerySolution soln = res.next();				
+					//RDFNode object_type = soln.get("?t");
+					Resource object_type = soln.getResource("?uri");
+					//System.out.println(""+object_type);
+					
+					
+					//System.out.println(object_type);
+					if (object_type!=null)
+						types.add(object_type.getURI().toString());
+					
+				}
+				
+				success=true;
+			    
+			} 
+			catch (Exception e) {
+				System.out.println("Error accessing " + getENDPOINT() + " with  SPARQL:\n" + query + "  Attempt: " + attempts);
+				e.printStackTrace();
+				TimeUnit.MINUTES.sleep(1); //wait 1 minute and try again
+			}
+			finally {
+				qe.close();
+			}
+			
+		}
+		if (!success)
+			throw new Exception(); 
+		else if (attempts>1)
+			System.out.println("SUCCESS accessing SPARQL\n: " + query + "  Attempt: " + attempts);
+		
+		return types;
+		
+	}
 	
 	
 	
@@ -135,14 +198,12 @@ public abstract class SPARQLEndpointService {
 				while( res.hasNext()) {
 					
 					QuerySolution soln = res.next();				
-					RDFNode object_type = soln.get("?t");
+					Literal object_type = soln.getLiteral("?value");
 					//System.out.println(""+object_type);
 					
-					//TODO: no rdf:label?
-					//System.out.println(object_type);
 					if (object_type!=null)
-						types.add(object_type.toString());
-					
+						types.add(object_type.getValue().toString()); //TODO language?
+ 					
 				}
 				
 				success=true;

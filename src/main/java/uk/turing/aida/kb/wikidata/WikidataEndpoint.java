@@ -24,11 +24,7 @@ public class WikidataEndpoint extends SPARQLEndpointService{
 
 
 
-	@Override
-	protected String craeteSPARQLQuery_TypeObjectsForPredicate(String uri_predicate) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	
 
 
 
@@ -51,9 +47,11 @@ public class WikidataEndpoint extends SPARQLEndpointService{
 
 	
 	@Override
-	protected String createSPARQLQueryForObject(String uri_subject) {
-		// TODO Auto-generated method stub
-		return null;
+	protected String createSPARQLQueryForObject(String uri_object) {
+		return //"PREFIX foaf: <http://xmlns.com/foaf/0.1/> \n "+
+				"SELECT ?s ?p \n"
+				+ "WHERE { ?s ?p <" + uri_object + "> . "
+				+ "}";
 	}
 	
 	
@@ -76,10 +74,18 @@ public class WikidataEndpoint extends SPARQLEndpointService{
 	protected String createSPARQLQuery_TypesForSubject(String uri_subject){
 		
 		return //"PREFIX foaf: <http://xmlns.com/foaf/0.1/> \n "+
-				"SELECT DISTINCT ?t \n"
-				+ "WHERE { <" + uri_subject + "> <http://www.wikidata.org/prop/direct/P31> ?t . "
+				"SELECT DISTINCT ?uri \n"
+				+ "WHERE { <" + uri_subject + "> <http://www.wikidata.org/prop/direct/P31> ?uri . "
 				+ "}";
 		
+	}
+	
+	@Override
+	protected String craeteSPARQLQuery_TypeObjectsForPredicate(String uri_predicate) {
+		return "SELECT DISTINCT ?uri \n"
+				+ "WHERE { ?s <" + uri_predicate + "> ?o . "
+				+ "?o <http://www.wikidata.org/prop/direct/P31> ?uri ."
+				+ "}";
 	}
 	
 	/*protected String createSPARQLQuery_LabelForSubject(String uri_subject){

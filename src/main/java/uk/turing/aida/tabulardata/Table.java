@@ -91,11 +91,16 @@ public class Table {
 	}
 	
 	
-	//Assuming all rows has the same size interms of columns....
+	//Assuming all rows has the same size in terms of columns....
 	public int getNumberOfColumns(){
 		if (table_data.isEmpty())
 			return 0;
 		return getRow(0).length;
+	}
+	
+	
+	public int getNumberOfRows(){
+		return getSize();
 	}
 	
 	
