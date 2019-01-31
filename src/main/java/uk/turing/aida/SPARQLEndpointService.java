@@ -273,7 +273,7 @@ public abstract class SPARQLEndpointService {
 					QuerySolution soln = res.next();
 					RDFNode predicate = soln.get("?p");
 					RDFNode object = soln.get("?o");
-					System.out.println(""+predicate + " " + object);
+					//System.out.println(""+predicate + " " + object);
 					
 					triples.add(model.createStatement(subject, model.createProperty(predicate.toString()), object));
 				}

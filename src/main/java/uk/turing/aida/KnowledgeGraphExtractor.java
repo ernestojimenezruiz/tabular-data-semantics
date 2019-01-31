@@ -1,11 +1,14 @@
 package uk.turing.aida;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.jena.rdf.model.Statement;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 import uk.turing.aida.tabulardata.Table;
 import uk.turing.aida.tabulardata.utils.ReadFile;
@@ -22,9 +25,9 @@ public abstract class KnowledgeGraphExtractor {
 	protected LookupService lookup;
 	protected SPARQLEndpointService endpoint;
 	
-	private Set<String> related_entities = new HashSet<String>();
-	private Set<Statement> related_triples = new HashSet<Statement>();
-	private Set<String> referenced_entities = new HashSet<String>();
+	protected Set<String> related_entities = new HashSet<String>();
+	protected Set<Statement> related_triples = new HashSet<Statement>();
+	protected Set<String> referenced_entities = new HashSet<String>();
 	
 	protected Set<String> visited_labels = new HashSet<String>();
 	
@@ -44,37 +47,9 @@ public abstract class KnowledgeGraphExtractor {
 	protected abstract SPARQLEndpointService createEndpointService();
 	
 	
+		
 	
-	
-	public Set<Statement> getRelatedTriplesForCell(String cell_value) throws Exception{
-	
-		Set<String> words;
-		
-		//init
-		related_entities.clear();
-		related_triples.clear();
-		referenced_entities.clear();
-		
-		//Already visited
-		if (visited_labels.contains(cell_value))
-			return related_triples; 
-		
-		
-		//LOOKUP
-		//1. Look-up for whole cell label (hits=5)
-		related_entities.addAll(lookup.getEntityURIs(cell_value, "", 5, "en"));
-		visited_labels.add(cell_value);
-		
-		//2. Look up for words in cell label (hits=30)
-		words = getWordsFromLabel(cell_value);
-		for (String word : words) {
-			if (!visited_labels.contains(word)) {
-				related_entities.addAll(lookup.getEntityURIs(word, "", 30, "en"));
-				visited_labels.add(word);
-			}
-		}
-		
-		
+	protected void extractRelatedTriplesEndPoint() throws Exception{
 		//Triples with SPARQL
 		//3. Get triples for related entities
 		for (String uri_entity : related_entities) {
@@ -94,16 +69,11 @@ public abstract class KnowledgeGraphExtractor {
 			}
 		}
 		
-		
-		
-		//5. Evaluate coverage with T2D (probably as test)
-		
-	
-		
-		
-		
-		return related_triples;
 	}
+	
+	
+	
+	
 	
 	
 	
@@ -113,23 +83,13 @@ public abstract class KnowledgeGraphExtractor {
 	 * @param entity columns Index of columns with string or categorical information
 	 * //columns_types For example provided by Ptype
 	 */
-	public Set<Statement> getRelatedTriplesForTable(Table table, List<Integer> entity_columns) throws Exception{
-		
-		Set<Statement> triples = new HashSet<Statement>();
-		
-		for (int rid=0; rid<table.getNumberOfRows(); rid++) {
-			for (int cid : entity_columns) {
-				triples.addAll(getRelatedTriplesForCell(table.getCell(rid, cid)));
-			}
-		}
-		
-		return triples;
-	
-	}
+	public abstract Set<Statement> getRelatedTriplesForTable(Table table, List<Integer> entity_columns) throws Exception;
 	
 	
 	
-	private Set<String> getWordsFromLabel(String label) {
+	
+	
+	protected Set<String> getWordsFromLabel(String label) {
 		
 		String label_value=label.replace(",", "");
 		String[] words;

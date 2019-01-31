@@ -79,8 +79,8 @@ public class DBpediaLookup extends LookupService{
 		//MaxHits + "=" + max_hits + "&" + QueryString + "=" + query;			
 		URL urlToGet = buildRequestURL(query, cls_type, max_hits);
 		
-		System.out.println(urlToGet);
-		System.out.println(getRequest(urlToGet));
+		//System.out.println(urlToGet);
+		//System.out.println(getRequest(urlToGet));
 		
 		
 		for (JsonNode result : jsonToNode(getRequest(urlToGet)).get("results")){

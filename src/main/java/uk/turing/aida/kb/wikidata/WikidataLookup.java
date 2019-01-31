@@ -79,13 +79,13 @@ public class WikidataLookup extends LookupService{
 		
 		URL urlToGet = buildRequestURL(query, max_hits, language);
 		
-		System.out.println(urlToGet);
-		System.out.println(getRequest(urlToGet));
+		//System.out.println(urlToGet);
+		//System.out.println(getRequest(urlToGet));
 		
 		
 		for (JsonNode result : jsonToNode(getRequest(urlToGet)).get("search")){
 			
-			System.out.println(result.toString());
+			//System.out.println(result.toString());
 			
 			entities.add(result.get("concepturi").asText());
 		}
