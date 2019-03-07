@@ -3,3 +3,5 @@
 .settings/
 /target/
 /test-classes/
+/src/test/java/uk/turing/aida/kb/wikidata/
+/dumpfiles/wikidatawiki/*

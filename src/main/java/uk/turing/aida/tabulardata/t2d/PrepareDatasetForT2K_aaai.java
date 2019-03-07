@@ -28,7 +28,7 @@ import uk.turing.aida.tabulardata.utils.WriteFile;
  * Created on 22 Aug 2018
  *
  */
-public class PrepareDatasetForT2K {
+public class PrepareDatasetForT2K_aaai {
 	
 	T2DConfiguration config = new T2DConfiguration();
 	
@@ -39,7 +39,7 @@ public class PrepareDatasetForT2K {
 	Map<String, Integer> table2PKid = new HashMap<String, Integer>();
 	
 	
-	public PrepareDatasetForT2K() throws NumberFormatException, IOException{
+	public PrepareDatasetForT2K_aaai() throws NumberFormatException, IOException{
 		//Read GS which will lead the evaluation
 		
 		config.loadConfiguration();
@@ -118,7 +118,7 @@ public class PrepareDatasetForT2K {
 			
 		
 		try {
-			new PrepareDatasetForT2K();
+			new PrepareDatasetForT2K_aaai();
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
