@@ -2,7 +2,7 @@
  * Copyright 2018 by The Alan Turing Institute
  * 
  *******************************************************************************/
-package uk.turing.aida.tabulardata.t2d;
+package uk.turing.aida.tabulardata.aida;
 
 import java.util.Properties;
 import uk.turing.aida.Configuration;
@@ -13,14 +13,12 @@ import uk.turing.aida.Configuration;
  * Created on 30 Jul 2018
  *
  */
-public class T2DConfiguration extends Configuration{
+public class AIDAConfiguration extends Configuration{
 
 	
 	
-	
-	
-	public T2DConfiguration(){
-		super("t2d");
+	public AIDAConfiguration(){
+		super("aida");
 	}
 	
 	
@@ -28,11 +26,9 @@ public class T2DConfiguration extends Configuration{
 		
 		//read parameters
 		path = properties.getProperty("path");
-		//type_gs_file = properties.getProperty("gs_types_file");
-		type_gs_file = properties.getProperty("gs_types_extended_file");
-		type_sc_gs_file = properties.getProperty("gs_types_extended_file_sc");
-		partial_reference_file = properties.getProperty("partial_reference_file");
-		columns_annotations_folder = properties.getProperty("columns_ann_folder");			
+		type_gs_file = properties.getProperty("gs_types_file");
+		type_sc_gs_file = properties.getProperty("gs_types_file_sc");
+		partial_reference_file = properties.getProperty("partial_reference_file");			
 		instance_annotations_folder = properties.getProperty("instance_ann_folder");				
 		tables_folder = properties.getProperty("tables_folder");
 

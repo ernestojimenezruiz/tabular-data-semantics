@@ -8,6 +8,7 @@ import java.io.File;
 
 import java.util.TreeSet;
 
+import uk.turing.aida.tabulardata.aida.AIDAConfiguration;
 import uk.turing.aida.tabulardata.t2d.T2DConfiguration;
 
 
@@ -17,17 +18,23 @@ import uk.turing.aida.tabulardata.t2d.T2DConfiguration;
  * Created on 8 Aug 2018
  *
  */
-public class TestPrecomputedPredictionsT2D extends TestPrecomputedPredictions {
+public class TestPrecomputedPredictionsAIDA extends TestPrecomputedPredictions {
 
 	
 	
-	T2DConfiguration config = new T2DConfiguration();
+	AIDAConfiguration config = new AIDAConfiguration();
 	
 	
 	
 	
-	public TestPrecomputedPredictionsT2D(EVAL_LEVEL eval_level, String predicted_types_file, double min_votes) throws Exception{
-		super(eval_level, predicted_types_file, min_votes);
+	public TestPrecomputedPredictionsAIDA(EVAL_LEVEL eval_level, String predicted_types_file, double min_votes) throws Exception{
+		this(eval_level, predicted_types_file, "", min_votes);
+	
+	}
+	
+	
+	public TestPrecomputedPredictionsAIDA(EVAL_LEVEL eval_level, String predicted_types_file, String lookup_baseline_file, double min_votes) throws Exception{
+		super(eval_level, predicted_types_file, lookup_baseline_file, min_votes);
 		
 		config.loadConfiguration();	
 	
@@ -60,10 +67,10 @@ public class TestPrecomputedPredictionsT2D extends TestPrecomputedPredictions {
 		
 		try {
 			
-			T2DConfiguration config = new T2DConfiguration();
+			AIDAConfiguration config = new AIDAConfiguration();
 			config.loadConfiguration();
 			
-			String path = config.path + "output_results/";
+			String path = config.path + "predictions/";
 			
 			File file =  new File(path);
 			
@@ -75,20 +82,26 @@ public class TestPrecomputedPredictionsT2D extends TestPrecomputedPredictions {
 			
 			
 			
-			System.out.println("file_name" + "\t" + "threshold" + "\t" + 
+			/*System.out.println("file_name" + "\t" + "threshold" + "\t" + 
 					"Micro Precision" + "\t" + "Micro Recall" + "\t" + "Micro F-score" + "\t" +
 					"Tolerant Macro Precision" + "\t" + "Tolerant Macro Recall" + "\t" + "Tolerant Macro F-score" + "\t" +
 					//test_tolerant.getT2KPrecision() + "\t" + test_tolerant.getT2KRecall() + "\t" + test_tolerant.getT2KFmeasure() + "\t" +
 					"Strict Macro Precision" + "\t" + "Strict Macro Recall" + "\t" + "Strict Macro F-score"
 					//test_restricted.getT2KPrecision() + "\t" + test_restricted.getT2KRecall() + "\t" + test_restricted.getT2KFmeasure()
-			);
+			);*/
+			
+			
+			//For ensemble
+			//String look_up_file = path + "lookup_column_types_aida_all.csv";
+			//Non ensemble
+			String look_up_file = "";
 			
 			
 			for (String file_name : ordered_files){
 			
 				
 				double threshold = 0.0;
-				TestPrecomputedPredictionsT2D  test_prediction;
+				TestPrecomputedPredictionsAIDA  test_prediction;
 				
 				
 				
@@ -103,14 +116,16 @@ public class TestPrecomputedPredictionsT2D extends TestPrecomputedPredictions {
 				//if (file_name.equals("p_lookup.csv")){
 				//if (file_name.contains("partial") && file_name.endsWith(".csv")){
 				//if (file_name.startsWith("p_cnn_1_2_1.00")){
-				if (file_name.endsWith(".csv")){
+				if (file_name.endsWith(".csv") && file_name.contains("aida_trait")){
 					System.out.println(file_name);
 					
-					while (threshold<=1.0){
+					while (threshold<=1.001){
+						
+						threshold = Math.round(threshold*100.0)/100.0;
 					
 						//TestPrecomputedPredictions test = new TestPrecomputedPredictions(false, config.t2d_path + "output_results/lookup_col_classes_jiaoyan.csv");
 						//TestPrecomputedPredictions test = new TestPrecomputedPredictions(false, config.t2d_path + "output_results/lookup_col_classes_hits_1_types_2_entailed.csv");
-						test_prediction = new TestPrecomputedPredictionsT2D(eval_level, path + file_name, threshold); //default: 0.5, 1
+						test_prediction = new TestPrecomputedPredictionsAIDA(eval_level, path + file_name, look_up_file, threshold); //default: 0.5, 1
 						
 						test_prediction.performTest();
 						
@@ -133,18 +148,19 @@ public class TestPrecomputedPredictionsT2D extends TestPrecomputedPredictions {
 						
 						
 						
-						System.out.println(file_name + "\t" + threshold + "\t" + 
+						/*System.out.println(file_name + "\t" + threshold + "\t" + 
 									test_prediction.getMicroPrecision() + "\t" + test_prediction.getMicroRecall() + "\t" + test_prediction.getMicroFmeasure() + "\t" +
 									test_prediction.getMacroPrecision() + "\t" + test_prediction.getMacroRecall() + "\t" + test_prediction.getMacroFmeasure() + "\t" +
 									//test_tolerant.getT2KPrecision() + "\t" + test_tolerant.getT2KRecall() + "\t" + test_tolerant.getT2KFmeasure() + "\t" +
 									test_prediction.getMacroPrecisionStrictMode() + "\t" + test_prediction.getMacroRecallStrictMode() + "\t" + test_prediction.getMacroFmeasureStrictMode()// + "\t" +
 									//test_restricted.getT2KPrecision() + "\t" + test_restricted.getT2KRecall() + "\t" + test_restricted.getT2KFmeasure()
-						);
+						);*/
+						System.out.println(file_name + "\t" + threshold + "\t" + test_prediction.getMacroPrecision() + "\t" + test_prediction.getMacroRecall() + "\t" + test_prediction.getMacroFmeasure());
 						
-						if (threshold >0.39 && threshold < 0.59 )
+						//if (threshold >0.39 && threshold < 0.59 )
 							threshold+=0.05;
-						else
-							threshold+=0.10;
+						//else
+						//	threshold+=0.10;
 						
 						
 					}

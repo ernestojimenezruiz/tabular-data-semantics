@@ -53,7 +53,7 @@ public class ExtendedColumnTypeDataset {
 		//Format 
 		//"68779923_2_1000046510804975562.tar.gz","Country","http://dbpedia.org/ontology/Country"
 
-		CVSReader cvs_reader = new CVSReader(config.t2d_path + config.type_gs_file);
+		CVSReader cvs_reader = new CVSReader(config.path + config.type_gs_file);
 		
 		for (int i=0; i<cvs_reader.getTable().getSize(); i++){
 			
@@ -90,7 +90,7 @@ public class ExtendedColumnTypeDataset {
 		for (int i=0; i<files.size(); i++){
 		//for (int i=0; i<5; i++){
 			
-			column_annotation_file = config.t2d_path + config.columns_annotations_folder + files.get(i) + ".csv";
+			column_annotation_file = config.path + config.columns_annotations_folder + files.get(i) + ".csv";
 			
 			System.out.println(column_annotation_file);
 			

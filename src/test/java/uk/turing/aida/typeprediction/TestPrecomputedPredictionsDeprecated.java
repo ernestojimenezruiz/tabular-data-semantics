@@ -115,13 +115,13 @@ public class TestPrecomputedPredictionsDeprecated {
 	protected void readGroundTruthaAndPrediction() throws Exception{
 		
 		//Read GS which will lead the evaluation
-		CVSReader gs_reader = new CVSReader(config.t2d_path + config.extended_type_gs_file);
+		CVSReader gs_reader = new CVSReader(config.path + config.type_gs_file);
 		
 		CVSReader prediction_reader = new CVSReader(predicted_types_file);
 		
 				
 		if (gs_reader.getTable().isEmpty()){
-			System.err.println("File '" + config.t2d_path + config.extended_type_gs_file + "' is empty.");
+			System.err.println("File '" + config.path + config.type_gs_file + "' is empty.");
 			return;
 		}		
 		
@@ -601,7 +601,7 @@ public class TestPrecomputedPredictionsDeprecated {
 			T2DConfiguration config = new T2DConfiguration();
 			config.loadConfiguration();
 			
-			String path = config.t2d_path + "output_results/";
+			String path = config.path + "output_results/";
 			
 			File file =  new File(path);
 			

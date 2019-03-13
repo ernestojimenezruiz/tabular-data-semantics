@@ -118,13 +118,13 @@ public class TestPrecomputedPredictions2 {
 	
 	protected void readBestHit1() throws IOException{
 		//CVSReader gs_reader = new CVSReader(config.t2d_path + config.extended_type_gs_file);
-		CVSReader gs_reader = new CVSReader(config.t2d_path + config.extended_type_sc_gs_file);
+		CVSReader gs_reader = new CVSReader(config.path + config.type_sc_gs_file);
 		
 		String[] row;
 		String key_name;
 
 		if (gs_reader.getTable().isEmpty()){
-			System.err.println("File '" + config.t2d_path + config.extended_type_gs_file + "' is empty.");
+			System.err.println("File '" + config.path + config.type_gs_file + "' is empty.");
 			return;
 		}	
 		
@@ -144,13 +144,13 @@ public class TestPrecomputedPredictions2 {
 	
 	
 	protected void readBestHit2() throws IOException{
-		CVSReader gs_reader = new CVSReader(config.t2d_path + config.extended_type_gs_file);
+		CVSReader gs_reader = new CVSReader(config.path + config.type_gs_file);
 		
 		String[] row;
 		String key_name;
 		
 		if (gs_reader.getTable().isEmpty()){
-			System.err.println("File '" + config.t2d_path + config.extended_type_gs_file + "' is empty.");
+			System.err.println("File '" + config.path + config.type_gs_file + "' is empty.");
 			return;
 		}	
 		
@@ -177,7 +177,7 @@ public class TestPrecomputedPredictions2 {
 	 */
 	protected void readGroundTruth() throws IOException{
 		//CVSReader gs_reader = new CVSReader(config.t2d_path + config.extended_type_gs_file);
-		CVSReader gs_reader = new CVSReader(config.t2d_path + config.extended_type_sc_gs_file);
+		CVSReader gs_reader = new CVSReader(config.path + config.type_sc_gs_file);
 		//CVSReader gs_reader = new CVSReader(config.t2d_path + config.partial_reference_file);
 		
 		String[] row;
@@ -186,7 +186,7 @@ public class TestPrecomputedPredictions2 {
 		boolean include;
 		
 		if (gs_reader.getTable().isEmpty()){
-			System.err.println("File '" + config.t2d_path + config.extended_type_gs_file + "' is empty.");
+			System.err.println("File '" + config.path + config.type_gs_file + "' is empty.");
 			return;
 		}	
 		
@@ -248,7 +248,7 @@ public class TestPrecomputedPredictions2 {
 		boolean include;
 		
 		if (pt_reader.getTable().isEmpty()){
-			System.err.println("File '" + config.t2d_path + config.extended_type_gs_file + "' is empty.");
+			System.err.println("File '" + config.path + config.type_gs_file + "' is empty.");
 			return;
 		}	
 		
@@ -822,7 +822,7 @@ public class TestPrecomputedPredictions2 {
 			T2DConfiguration config = new T2DConfiguration();
 			config.loadConfiguration();
 			
-			String path = config.t2d_path + "output_results/";
+			String path = config.path + "output_results/";
 			
 			File file =  new File(path);
 			

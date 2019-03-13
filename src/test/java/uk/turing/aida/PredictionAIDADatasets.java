@@ -12,7 +12,7 @@ import uk.turing.aida.tabulardata.reader.CVSReader;
 
 public class PredictionAIDADatasets {
 
-	
+	//TODO To be completed. We aim at producing a better training samples for ColNet
 	
 	public PredictionAIDADatasets() {
 	

@@ -152,7 +152,8 @@ public abstract class SPARQLEndpointService {
 			} 
 			catch (Exception e) {
 				System.out.println("Error accessing " + getENDPOINT() + " with  SPARQL:\n" + query + "  Attempt: " + attempts);
-				e.printStackTrace();
+				//e.printStackTrace();
+				System.out.println(e.getLocalizedMessage());
 				TimeUnit.MINUTES.sleep(1); //wait 1 minute and try again
 			}
 			finally {

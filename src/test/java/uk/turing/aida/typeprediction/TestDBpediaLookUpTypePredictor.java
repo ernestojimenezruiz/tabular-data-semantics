@@ -4,6 +4,9 @@
  *******************************************************************************/
 package uk.turing.aida.typeprediction;
 
+import uk.turing.aida.Configuration;
+import uk.turing.aida.tabulardata.aida.AIDAConfiguration;
+import uk.turing.aida.tabulardata.t2d.T2DConfiguration;
 import uk.turing.aida.typeprediction.DBpediaLookUpTypePredictor;
 
 /**
@@ -20,8 +23,8 @@ public class TestDBpediaLookUpTypePredictor extends TestTypePredictor {
 	String filter_type;
 	
 	
-	public TestDBpediaLookUpTypePredictor(boolean only_primary_columns, int max_hits, String filtertype) throws Exception{
-		super(only_primary_columns);
+	public TestDBpediaLookUpTypePredictor(boolean only_primary_columns, int max_hits, String filtertype, Configuration conf) throws Exception{
+		super(only_primary_columns, conf);
 		this.max_hits = max_hits;
 		this.filter_type = filtertype;
 	}
@@ -37,8 +40,12 @@ public class TestDBpediaLookUpTypePredictor extends TestTypePredictor {
 	public static void main (String[] args){
 		
 		
-		int[] hits = {1,2,3,4,5};
-		//int[] hits = {1};
+		//Configuration config = new T2DConfiguration(); 
+		Configuration config = new AIDAConfiguration(); 
+		
+		
+		//int[] hits = {1,2,3,4,5};
+		int[] hits = {5};
 		
 		
 		//Change to continue with partial tests
@@ -50,7 +57,7 @@ public class TestDBpediaLookUpTypePredictor extends TestTypePredictor {
 			
 			for (int n_hits : hits){
 					
-				TestDBpediaLookUpTypePredictor test = new TestDBpediaLookUpTypePredictor(false, n_hits, "");
+				TestDBpediaLookUpTypePredictor test = new TestDBpediaLookUpTypePredictor(false, n_hits, "", config);
 				test.performTest(starting_row);
 
 			}
@@ -66,21 +73,21 @@ public class TestDBpediaLookUpTypePredictor extends TestTypePredictor {
 
 	@Override
 	protected String getOutputTypesFile() {
-		return "lookup_col_classes_hits_"+ max_hits + ".csv";
+		return config.getConfigName() + "lookup_col_classes_hits_"+ max_hits + ".csv";
 	}
 
 
 
 	@Override
 	protected String getOutputEntailedTypesFile() {
-		return "lookup_col_classes_hits_"+ max_hits + ".csv";
+		return config.getConfigName() + "lookup_col_classes_hits_"+ max_hits + ".csv";
 	}
 	
 		
 
 	@Override
 	protected String getOutputEntitiesFile() {
-		return "lookup_entities_hits_"+ max_hits + ".csv";
+		return config.getConfigName() + "lookup_entities_hits_"+ max_hits + ".csv";
 	}	
 	
 	

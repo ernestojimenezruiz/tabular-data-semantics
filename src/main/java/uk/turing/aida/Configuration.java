@@ -18,6 +18,40 @@ import java.util.Properties;
  */
 public abstract class Configuration {
 	
+	
+	
+	//Path to T2D dataset
+	public String path;
+			
+	//This file assigns one dbpedia class type to each table (i.e., a type to "primary" key column)
+	//public String type_gs_file;
+	
+	//Extended types for non "primary" key columns
+	public String type_gs_file;
+	
+	//with superclasses
+	public String type_sc_gs_file;
+		
+		
+	//partial reference for testing
+	public String partial_reference_file;
+		
+		
+		
+	//This folder includes the annotations for some of the columns of each table
+	//Columns are annotated with dbpedia data and object properties
+	public String columns_annotations_folder;
+	
+	//Folder containing links to dbpedia 
+	public String instance_annotations_folder;
+		
+		
+		
+	//Dataset of tables
+	public String tables_folder;
+	
+	
+	
 	protected String config_name;
 	
 	

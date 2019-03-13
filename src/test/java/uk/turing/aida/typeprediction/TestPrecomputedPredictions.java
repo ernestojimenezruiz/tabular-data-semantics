@@ -60,14 +60,20 @@ public abstract class TestPrecomputedPredictions {
 	boolean parent_extension=true;
 	
 	
+	boolean ensemble=false;
+	double ensemble_MIN_Score = 1.0;
+	
 	
 	Map<String, Set<String>> groundTruth_types = new HashMap<String, Set<String>>();
 	Map<String, Set<String>> prediction_types = new HashMap<String, Set<String>>();
 	
+	Map<String, Set<String>> lookup_types = new HashMap<String, Set<String>>();
+	
 	
 	
 	String predicted_types_file;
-	double MIN_VOTES=0.5;
+	String lookup_types_file;
+	double MIN_SCORE=0.5;
 	//int MIN_TYPES=3;
 	//boolean RESTRICTED_EVAL = true;
 	
@@ -77,12 +83,23 @@ public abstract class TestPrecomputedPredictions {
 	
 	
 	public TestPrecomputedPredictions(EVAL_LEVEL eval_level, String predicted_types_file, double min_votes) throws Exception{
+		this(eval_level, predicted_types_file, "", min_votes);
+		
+	}
+	
+	
+	public TestPrecomputedPredictions(EVAL_LEVEL eval_level, String predicted_types_file, String lookup_baseline, double min_votes) throws Exception{
 		
 		this.eval=eval_level;
 		
 		this.predicted_types_file = predicted_types_file;
 		
-		MIN_VOTES = min_votes;
+		MIN_SCORE = min_votes;
+		
+		if (!lookup_baseline.isEmpty()) {
+			lookup_types_file = lookup_baseline;
+			ensemble=true;
+		}
 		
 		
 	}
@@ -93,8 +110,14 @@ public abstract class TestPrecomputedPredictions {
 		readBestHit1();
 		
 		readGroundTruth();
-		readPrediction();
-		//readPrediction2();
+		
+		if (ensemble)
+			readLookup();
+		
+		
+		//readPrediction();
+		readPrediction2();
+		
 							
 		computeStandardMeaures();		
 		
@@ -222,6 +245,8 @@ public abstract class TestPrecomputedPredictions {
 					groundTruth_types.get(key_name).add(dbpedia_uri+row[i]);
 				}
 				
+				//System.out.println(groundTruth_types);
+				
 			}
 		}
 	}
@@ -288,6 +313,9 @@ public abstract class TestPrecomputedPredictions {
 	
 	
 	/**
+	 * 
+	 * TODO Does not work for both cases.... only first one!
+	 * 
 	 * One line per types with score
 	 * Format: "86747932_0_7532457067740920052","1","Ship","0.15"
 	 * 
@@ -320,6 +348,7 @@ public abstract class TestPrecomputedPredictions {
 			
 			key_name= row[0] + "-" + row[1];
 			
+			
 			isPK = table2PKid.containsKey(row[0]) && table2PKid.get(row[0]).equals(row[1]); 
 			
 			
@@ -340,10 +369,11 @@ public abstract class TestPrecomputedPredictions {
 				
 				//System.out.println(previous_key_name +  "  " + votesForType.size());
 				
-			
+				
 				for (String type : votesForType.keySet()){ //if not fitting the PK or nonPK requirement it will be empty
 					
-					if (votesForType.get(type)>=MIN_VOTES){
+					
+					if (votesForType.get(type)>=MIN_SCORE){
 						
 						if (!prediction_types.containsKey(previous_key_name))
 							prediction_types.put(previous_key_name, new HashSet<String>());
@@ -359,6 +389,7 @@ public abstract class TestPrecomputedPredictions {
 				
 			}
 			
+			//System.out.println(include + " " + row.length);
 			
 			if (include && row.length>3)
 				votesForType.put(row[2], Double.valueOf(row[3]));
@@ -371,7 +402,7 @@ public abstract class TestPrecomputedPredictions {
 		//Last group table-column set of types
 		for (String type : votesForType.keySet()){ //if not fitting the PK or nonPK requirement it will be empty
 			
-			if (votesForType.get(type)>=MIN_VOTES){
+			if (votesForType.get(type)>=MIN_SCORE){
 				
 				if (!prediction_types.containsKey(previous_key_name))
 					prediction_types.put(previous_key_name, new HashSet<String>());
@@ -380,6 +411,8 @@ public abstract class TestPrecomputedPredictions {
 				
 			}
 		}
+		
+		//System.out.println(prediction_types);
 		
 		
 	}
@@ -440,7 +473,7 @@ public abstract class TestPrecomputedPredictions {
 			
 				for (String type : votesForType.keySet()){ //if not fitting the PK or nonPK requirement it will be empty
 					
-					if (votesForType.get(type)>=MIN_VOTES){
+					if (votesForType.get(type)>=MIN_SCORE){
 						
 						if (!prediction_types.containsKey(previous_key_name))
 							prediction_types.put(previous_key_name, new HashSet<String>());
@@ -468,7 +501,7 @@ public abstract class TestPrecomputedPredictions {
 		//Last group table-column set of types
 		for (String type : votesForType.keySet()){ //if not fitting the PK or nonPK requirement it will be empty
 			
-			if (votesForType.get(type)>=MIN_VOTES){
+			if (votesForType.get(type)>=MIN_SCORE){
 				
 				if (!prediction_types.containsKey(previous_key_name))
 					prediction_types.put(previous_key_name, new HashSet<String>());
@@ -477,6 +510,120 @@ public abstract class TestPrecomputedPredictions {
 				
 			}
 		}
+		
+		
+		
+		//add prediction type from look up if voting score > 0.95	
+		if (ensemble) {
+			for (String key : prediction_types.keySet()) {
+				if (lookup_types.containsKey(key)) {
+					prediction_types.get(key).addAll(lookup_types.get(key));
+				}
+			}
+		}
+			
+		
+		
+		
+	}
+	
+	
+	
+	
+	/**
+	 * One line per types with score
+	 * "77694908_0_6083291340991074532 1","Company","0.10"
+	 * 
+	 * @throws IOException
+	 */
+	protected void readLookup() throws IOException{
+		
+		CVSReader prediction_reader = new CVSReader(lookup_types_file);
+		
+		String[] row;
+		String key_name;
+		boolean isPK;
+		boolean include;
+		
+		if (prediction_reader.getTable().isEmpty()){
+			System.err.println("File '" + lookup_types_file + "' is empty.");
+			return;
+		}		
+		
+		
+		Map<String, Double> votesForType= new HashMap<String, Double>();
+		String previous_key_name = prediction_reader.getTable().getRow(0)[0].replaceAll(" ", "-");
+		
+		for (int rid=0; rid<prediction_reader.getTable().getSize(); rid++){
+			row = prediction_reader.getTable().getRow(rid);
+			
+
+			key_name= row[0].replaceAll(" ", "-");
+			
+			String[] row0_split = row[0].split(" ");
+			isPK = table2PKid.containsKey(row0_split[0]) && table2PKid.get(row0_split[0]).equals(row0_split[1]); 
+			
+			
+			switch (eval) {
+	            case PK:
+	            	include=isPK;
+	            	break;
+	            case NONPK:
+	            	include=!isPK;
+	            	break;
+	            default://all
+	            	include=true;
+			}
+			
+			
+			//change
+			if (!previous_key_name.equals(key_name)){
+				
+				//System.out.println(previous_key_name +  "  " + votesForType.size());
+				
+			
+				for (String type : votesForType.keySet()){ //if not fitting the PK or nonPK requirement it will be empty
+					
+					if (votesForType.get(type)>=MIN_SCORE && votesForType.get(type)>=ensemble_MIN_Score){
+						
+						if (!lookup_types.containsKey(previous_key_name))
+							lookup_types.put(previous_key_name, new HashSet<String>());
+					
+						lookup_types.get(previous_key_name).add(dbpedia_uri+type);
+						
+					}
+				}
+				
+				
+				previous_key_name = key_name;
+				votesForType.clear();
+				
+			}
+			
+			
+			if (include && row.length>2)
+				votesForType.put(row[1], Double.valueOf(row[2]));
+			//empty otherwise
+			
+		}//end for
+		
+		
+		
+		//Last group table-column set of types
+		for (String type : votesForType.keySet()){ //if not fitting the PK or nonPK requirement it will be empty
+			
+			if (votesForType.get(type)>=MIN_SCORE  && votesForType.get(type)>=ensemble_MIN_Score){
+				
+				if (!lookup_types.containsKey(previous_key_name))
+					lookup_types.put(previous_key_name, new HashSet<String>());
+				
+				lookup_types.get(previous_key_name).add(dbpedia_uri+type);
+				
+			}
+		}
+		
+		
+		
 		
 		
 	}

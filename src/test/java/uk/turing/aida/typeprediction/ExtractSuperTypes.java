@@ -74,6 +74,86 @@ public class ExtractSuperTypes {
 		
 	}
 	
+	
+	public ExtractSuperTypes() throws Exception{
+		
+		setUpDBPedia();		
+		
+		
+	}
+	
+	
+	public String getDbpediaURINamespace() {
+		return dbpo.getDbpediaURINamespace();
+	}
+	
+	
+	public Set<String> getSuperTypesSparql(String type) throws Exception{
+		
+		
+		String cls_uri = dbpo.getDbpediaURINamespace()+type;
+		
+		
+		//If we already have the types
+		if (!type2supertypes_sparql.containsKey(cls_uri)){
+			
+			
+			type2supertypes_sparql.put(cls_uri, new HashSet<String>());
+			
+			
+			for (String cls : dbe.getAllSuperClassesForSubject(cls_uri)){
+				if (!filterType(cls, cls_uri))
+					type2supertypes_sparql.get(cls_uri).add(cls);
+			}
+			
+
+		}
+		
+		return type2supertypes_sparql.get(cls_uri);
+		
+		
+		
+	}
+	
+	
+	public  Set<String> getSuperTypesClassification(String type) throws Exception{
+		
+		String cls_uri = dbpo.getDbpediaURINamespace()+type;
+		
+		
+		//We already have the types
+		if (!type2supertypes_classification.containsKey(cls_uri)){
+			
+			
+			type2supertypes_classification.put(cls_uri, new HashSet<String>());
+			
+			
+			for (OWLClass cls : dbpo.getSuperClasses(cls_uri, false)){
+				//Ignore Top and external dbpedia types (e.g. yago)
+				if (!filterType(cls, cls_uri))
+					type2supertypes_classification.get(cls_uri).add(cls.getIRI().toString());
+			}
+			
+			//Equivalent types
+			for (OWLClass cls : dbpo.getEquivalentClasses(cls_uri)){
+				//Ignore Top and external dbpedia types (e.g. yago)
+				if (!filterType(cls, cls_uri))
+					type2supertypes_classification.get(cls_uri).add(cls.getIRI().toString());
+			}
+		}
+		
+		
+		
+		return type2supertypes_classification.get(cls_uri);
+		
+		
+
+		
+	}
+	
+	
+	
+	
 	/**
 	 * 
 	 */
@@ -227,7 +307,7 @@ public class ExtractSuperTypes {
 			T2DConfiguration config = new T2DConfiguration();
 			config.loadConfiguration();
 			
-			String path = config.t2d_path + "output_results/";
+			String path = config.path + "output_results/";
 			
 			//File file =  new File(path);
 			String file_name_pattern = "lookup_col_classes_hits_1.csv";

@@ -42,11 +42,11 @@ public class MergeGroundTruths {
 		config.loadConfiguration();
 		
 		
-		file1 = config.t2d_path + "colulmn_class_types_fg_Aug23.csv";
+		file1 = config.path + "colulmn_class_types_fg_Aug23.csv";
 		
-		file2 = config.t2d_path + "column_gt_extend_fg.csv";
+		file2 = config.path + "column_gt_extend_fg.csv";
 		
-		fileout = config.t2d_path + "colulmn_class_types_extend_fg_Aug23.csv";
+		fileout = config.path + "colulmn_class_types_extend_fg_Aug23.csv";
 		
 		Map<String, Map<Integer, ColumnType>> map = new HashMap<String, Map<Integer, ColumnType>>();
 		

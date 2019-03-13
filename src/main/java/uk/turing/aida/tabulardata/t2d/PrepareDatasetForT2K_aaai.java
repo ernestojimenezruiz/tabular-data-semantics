@@ -44,7 +44,7 @@ public class PrepareDatasetForT2K_aaai {
 		
 		config.loadConfiguration();
 		
-		CVSReader gs_reader = new CVSReader(config.t2d_path + config.extended_type_gs_file);
+		CVSReader gs_reader = new CVSReader(config.path + config.type_gs_file);
 			
 		String[] row;
 		
@@ -65,9 +65,9 @@ public class PrepareDatasetForT2K_aaai {
 			row = gs_reader.getTable().getRow(rid);
 			
 			//System.out.println(row[0] + " " + row[1] + "  " +  row[2] + " " + row[3]);
-			File file = new File(config.t2d_path + config.tables_folder + row[0] + ".csv");
+			File file = new File(config.path + config.tables_folder + row[0] + ".csv");
 			if (!file.exists()){
-				System.err.println("The file '" + config.t2d_path + config.tables_folder + row[0] + ".csv' does not exixt.");
+				System.err.println("The file '" + config.path + config.tables_folder + row[0] + ".csv' does not exixt.");
 				continue;
 			}
 			
@@ -86,11 +86,11 @@ public class PrepareDatasetForT2K_aaai {
 		
 		//Remove duplicates... keep table title and cosnsietnt row for PK column
 		
-		CVSReader table_reader = new CVSReader(config.t2d_path + config.tables_folder + table_id + ".csv", true);
+		CVSReader table_reader = new CVSReader(config.path + config.tables_folder + table_id + ".csv", true);
 		
 		Set<String> values = new HashSet<String>();
 		
-		WriteFile writer = new WriteFile(config.t2d_path + folder_name + "/" + table_id + "-" + column_id + ".csv");
+		WriteFile writer = new WriteFile(config.path + folder_name + "/" + table_id + "-" + column_id + ".csv");
 		
 		writer.writeLine("\"" + table_reader.getTable().getColumnNames()[column_id] + "\",\"" + table_reader.getTable().getColumnNames()[column_id_pk] + "\"");
 		

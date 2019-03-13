@@ -4,6 +4,8 @@
  *******************************************************************************/
 package uk.turing.aida.typeprediction;
 
+import uk.turing.aida.Configuration;
+import uk.turing.aida.tabulardata.t2d.T2DConfiguration;
 import uk.turing.aida.typeprediction.RefinedDBpediaLookUpTypePredictor;
 
 /**
@@ -18,8 +20,8 @@ public class TestRefinedDBpediaLookUpTypePredictor extends TestTypePredictor {
 
 	int max_hits;
 	
-	public TestRefinedDBpediaLookUpTypePredictor(boolean only_primary_columns, int max_hits) throws Exception{
-		super(only_primary_columns);
+	public TestRefinedDBpediaLookUpTypePredictor(boolean only_primary_columns, int max_hits, Configuration config) throws Exception{
+		super(only_primary_columns, config);
 		this.max_hits = max_hits;
 	}
 	
@@ -34,6 +36,8 @@ public class TestRefinedDBpediaLookUpTypePredictor extends TestTypePredictor {
 	public static void main (String[] args){
 		
 		
+		Configuration config = new T2DConfiguration(); 
+		
 		int[] hits = {1,2,3,4,5};
 		//int[] hits = {1};
 
@@ -46,7 +50,7 @@ public class TestRefinedDBpediaLookUpTypePredictor extends TestTypePredictor {
 			
 			for (int n_hits : hits){
 				
-				TestRefinedDBpediaLookUpTypePredictor test = new TestRefinedDBpediaLookUpTypePredictor(false, n_hits);
+				TestRefinedDBpediaLookUpTypePredictor test = new TestRefinedDBpediaLookUpTypePredictor(false, n_hits, config);
 				test.performTest(starting_row);
 			}
 			
@@ -62,18 +66,18 @@ public class TestRefinedDBpediaLookUpTypePredictor extends TestTypePredictor {
 
 	@Override
 	protected String getOutputTypesFile() {
-		return "refined-lookup_col_classes_hits_"+ max_hits + ".csv";
+		return config.getConfigName() + "refined-lookup_col_classes_hits_"+ max_hits + ".csv";
 	}
 	
 	protected String getOutputEntailedTypesFile() {
-		return "refined-lookup_col_classes_hits_"+ max_hits + "_entailed" + ".csv";
+		return config.getConfigName() + "refined-lookup_col_classes_hits_"+ max_hits + "_entailed" + ".csv";
 	}
 
 
 
 	@Override
 	protected String getOutputEntitiesFile() {
-		return "refined-lookup_entities_hits_"+ max_hits + ".csv";
+		return config.getConfigName() + "refined-lookup_entities_hits_"+ max_hits + ".csv";
 	}
 	
 		

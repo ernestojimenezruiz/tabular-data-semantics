@@ -16,6 +16,7 @@ import java.util.TreeMap;
 
 import org.semanticweb.owlapi.model.OWLClass;
 
+import uk.turing.aida.Configuration;
 import uk.turing.aida.kb.dbpedia.DBpediaOntology;
 import uk.turing.aida.tabulardata.Table;
 import uk.turing.aida.tabulardata.reader.CVSReader;
@@ -33,7 +34,9 @@ import uk.turing.aida.typeprediction.ColumnClassTypePredictor;
  */
 public abstract class TestTypePredictor {
 
-	T2DConfiguration config = new T2DConfiguration();
+	//T2DConfiguration config = new T2DConfiguration();
+	
+	protected Configuration config;
 	
 	ColumnClassTypePredictor type_predictor;
 	
@@ -57,9 +60,11 @@ public abstract class TestTypePredictor {
 	WriteFile prediction_writer;
 		
 	
-	public TestTypePredictor(boolean only_primary_columns) throws Exception{
+	public TestTypePredictor(boolean only_primary_columns, Configuration conf) throws Exception{
 		
 		this.only_primary_columns=only_primary_columns;
+		
+		config = conf;
 		
 		config.loadConfiguration();
 		
@@ -79,11 +84,11 @@ public abstract class TestTypePredictor {
 	protected void readGroundTruthaAndComputePrediction(int starting_row) throws Exception{
 		
 		//Read GS which will lead the evaluation
-		CVSReader gs_reader = new CVSReader(config.t2d_path + config.extended_type_gs_file);
+		CVSReader gs_reader = new CVSReader(config.path + config.type_gs_file);
 		//CVSReader gs_reader = new CVSReader(config.t2d_path + config.partial_reference_file);
 		
 		if (gs_reader.getTable().isEmpty()){
-			System.err.println("File '" + config.t2d_path + config.extended_type_gs_file + "' is empty.");
+			System.err.println("File '" + config.path + config.type_gs_file + "' is empty.");
 			return;
 		}		
 		
@@ -101,9 +106,14 @@ public abstract class TestTypePredictor {
 			String[] row = gs_reader.getTable().getRow(rid);
 			
 			//System.out.println(row[0] + " " + row[1] + "  " +  row[2] + " " + row[3]);
-			File file = new File(config.t2d_path + config.tables_folder + row[0] + ".csv");
+			File file;
+			if (row[0].endsWith(".csv"))
+				file = new File(config.path + config.tables_folder + row[0]);
+			else
+				file = new File(config.path + config.tables_folder + row[0] + ".csv");
+			
 			if (!file.exists()){
-				System.err.println("The file '" + config.t2d_path + config.tables_folder + row[0] + ".csv' does not exixt.");
+				System.err.println("The file '" + config.path + config.tables_folder + row[0] + ".csv' does not exixt.");
 				continue;
 			}
 						
@@ -161,7 +171,7 @@ public abstract class TestTypePredictor {
 	
 	protected void printEntityHitsIntoFile(boolean resetFile){
 				
-		entities_writer = new WriteFile(config.t2d_path + "output_results/" + getOutputEntitiesFile(), !resetFile); //we append to previous table results
+		entities_writer = new WriteFile(config.path + "output_results/" + getOutputEntitiesFile(), !resetFile); //we append to previous table results
 		
 		String line="";
 		
@@ -183,7 +193,7 @@ public abstract class TestTypePredictor {
 	
 	
 	protected void printPredictionIntoFile(boolean resetFile, String table_name, Map<Integer, TreeMap<String, Double>> predicted_types_map){
-		prediction_writer = new WriteFile(config.t2d_path + "output_results/" + getOutputTypesFile(), !resetFile);
+		prediction_writer = new WriteFile(config.path + "output_results/" + getOutputTypesFile(), !resetFile);
 		
 		
 		for (Integer col_id : predicted_types_map.keySet()){
@@ -208,7 +218,11 @@ public abstract class TestTypePredictor {
 	
 	protected void getPrediction(String table_name, List<Integer> column_ids, boolean resetFile) throws Exception{
 		
-		CVSReader table_reader = new CVSReader(config.t2d_path + config.tables_folder + table_name + ".csv");
+		CVSReader table_reader;
+		if (table_name.endsWith(".csv"))
+			table_reader = new CVSReader(config.path + config.tables_folder + table_name);
+		else
+			table_reader = new CVSReader(config.path + config.tables_folder + table_name + ".csv");
 		
 		Map<Integer, TreeMap<String, Double>> predicted_types_map = getPrediction(table_reader.getTable(), column_ids);
 		

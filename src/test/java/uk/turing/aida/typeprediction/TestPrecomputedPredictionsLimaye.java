@@ -37,7 +37,7 @@ public class TestPrecomputedPredictionsLimaye extends TestPrecomputedPredictions
 	
 	@Override
 	protected String getPath() {
-		return config.limaye_path;
+		return config.path;
 	}
 
 
@@ -63,7 +63,7 @@ public class TestPrecomputedPredictionsLimaye extends TestPrecomputedPredictions
 			LimayeConfiguration config = new LimayeConfiguration();
 			config.loadConfiguration();
 			
-			String path = config.limaye_path + "output_results/";
+			String path = config.path + "output_results/";
 			
 			File file =  new File(path);
 			

@@ -42,7 +42,7 @@ public class CreateTypeResultsForT2K {
 		config.loadConfiguration();
 		
 		CVSReader reader = new CVSReader(input_file);
-		CVSReader gsreader = new CVSReader(config.t2d_path+config.extended_type_gs_file);
+		CVSReader gsreader = new CVSReader(config.path+config.type_gs_file);
 		
 		
 		WriteFile writer = new WriteFile(output_file);
