@@ -85,7 +85,7 @@ public class DBpediaLookup extends LookupService{
 		
 		for (JsonNode result : jsonToNode(getRequest(urlToGet)).get("results")){
 			
-			//System.out.println(result.toString());
+			System.out.println(result.toString());
 			
 			entities.add(result.get("uri").asText());
 		}

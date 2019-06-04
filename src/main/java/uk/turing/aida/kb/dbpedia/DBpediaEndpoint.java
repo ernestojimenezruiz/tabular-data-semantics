@@ -83,7 +83,7 @@ public class DBpediaEndpoint extends SPARQLEndpointService {
 	protected String createSPARQLQuery_AllTypesForSubject(String uri_subject){
 		
 		return //"PREFIX foaf: <http://xmlns.com/foaf/0.1/> \n "+
-				"SELECT DISTINCT ?t \n"
+				"SELECT DISTINCT ?uri \n"
 				+ "WHERE {\n"
 				+ "{<" + uri_subject + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?dt . "
 				+ "?dt <http://www.w3.org/2000/01/rdf-schema#subClassOf>* ?uri "
@@ -159,6 +159,10 @@ public class DBpediaEndpoint extends SPARQLEndpointService {
 		
 		uri_subject ="http://dbpedia.org/resource/Capcom";
 		
+		
+		uri_subject ="http://dbpedia.org/resource/Wales";
+		
+		
 		DBpediaEndpoint dbe = new DBpediaEndpoint();
 		
 		
@@ -166,7 +170,15 @@ public class DBpediaEndpoint extends SPARQLEndpointService {
 		try {
 			
 			System.out.println(dbe.getTypesForSubject(uri_subject).size() + " " + dbe.getTypesForSubject(uri_subject));
-			//System.out.println(dbe.getAllTypesForSubject(uri_subject).size() + " " + dbe.getAllTypesForSubject(uri_subject));
+			for (String type : dbe.getTypesForSubject(uri_subject)){
+				if (type.startsWith("http://dbpedia.org/ontology"))
+					System.out.println("\t"+type);
+			}
+			System.out.println(dbe.getAllTypesForSubject(uri_subject).size() + " " + dbe.getAllTypesForSubject(uri_subject));
+			for (String type : dbe.getAllTypesForSubject(uri_subject)){
+				if (type.startsWith("http://dbpedia.org/ontology"))
+					System.out.println("\t"+type);
+			}
 			
 			//System.out.println(dbe.getAllSuperClassesForSubject(uri_subject).size() + " " +  dbe.getAllSuperClassesForSubject(uri_subject));
 			

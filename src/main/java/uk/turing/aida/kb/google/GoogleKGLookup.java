@@ -27,6 +27,7 @@ public class GoogleKGLookup {
 	
 	//https://github.com/schemaorg/schemaorg
 	//Doc: https://developers.google.com/knowledge-graph/reference/rest/v1/
+	//https://developers.google.com/knowledge-graph/
 	//https://console.developers.google.com/apis/api/kgsearch.googleapis.com/credentials?project=sem-tab
 
 	String API_key = "AIzaSyA6Bf9yuMCCPh7vpElzrfBvE2ENCVWr-84";
